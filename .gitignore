@@ -1,0 +1,98 @@
+# Billfish Web Manager - Git ignore file
+
+# IDE 文件
+.vscode/
+*.swp
+*.swo
+*~
+
+# 日志文件
+*.log
+logs/
+
+# 临时文件
+.tmp/
+temp/
+web-manager/archive/
+
+# 系统文件
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# PHP 临时文件
+*.tmp
+
+# 生成的映射文件（包含实时数据）
+web-manager/preview-mapping*.json
+
+# Web 服务器临时文件
+web-manager/.htaccess.backup
+
+# 备份文件
+*.bak
+*.backup
+
+# 可执行文件
+*.exe
+web-manager/sqlite3.exe
+
+# 大型媒体文件（所有视频格式）
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.webm
+*.wmv
+*.flv
+*.m4v
+
+# 大型图片文件
+*.psd
+*.ai
+*.eps
+
+# Billfish 数据库文件（包含用户数据）
+*.db
+*.db-journal
+
+# Billfish 系统文件夹（完全忽略）
+.bf/
+**/.bf/
+
+# Billfish 缓存和临时文件
+.recycle/
+.recycle*/
+**/.recycle/
+**/.recycle*/
+.preview/
+**/.preview/
+.temp/
+**/.temp/
+.backup/
+**/.backup/
+
+# 媒体资源目录（太大，不适合版本控制）
+public/assets/viedeos/rzxme-billfish/
+demo-billfish/pics/
+demo-billfish/videos/
+demo-billfish/other/
+
+# Web manager 的数据分析文件（临时）
+web-manager/database-analysis.php
+web-manager/binary-analysis.php
+web-manager/reverse-engineering.php
+web-manager/final-mapping.php
+web-manager/test-mapping.php
+
+# Node modules (如果将来添加)
+node_modules/
+
+# Python 缓存 (如果将来添加)
+__pycache__/
+*.pyc
+
+# 压缩文件
+*.zip
+*.rar
+*.7z

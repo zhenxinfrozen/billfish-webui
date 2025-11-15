@@ -1,0 +1,179 @@
+{
+  "title": "Billfish Web Manager 文档中心",
+  "version": "0.1.0",
+  "sections": [
+    {
+      "id": "getting-started",
+      "name": "入门指南",
+      "icon": "🚀",
+      "order": 1,
+      "description": "快速了解和上手系统",
+      "documents": [
+        {
+          "file": "quick-start.md",
+          "title": "快速入门",
+          "description": "5分钟了解系统核心功能",
+          "order": 1,
+          "badge": "推荐"
+        },
+        {
+          "file": "quick-start-v0.1.0.md",
+          "title": "v0.1.0 快速开始",
+          "description": "v0.1.0 版本快速开始指南",
+          "order": 2
+        }
+      ]
+    },
+    {
+      "id": "user-guide",
+      "name": "用户指南",
+      "icon": "📖",
+      "order": 2,
+      "description": "详细的功能使用说明",
+      "documents": [
+        {
+          "file": "using-docs-center.md",
+          "title": "文档中心使用指南",
+          "description": "如何使用文档中心查找和阅读文档",
+          "order": 1
+        }
+      ]
+    },
+    {
+      "id": "development",
+      "name": "开发文档",
+      "icon": "🔧",
+      "order": 3,
+      "description": "技术文档和API参考",
+      "documents": [
+        {
+          "file": "database-mapping.md",
+          "title": "数据库映射系统",
+          "description": "Billfish数据库结构和映射规则",
+          "order": 1
+        },
+        {
+          "file": "docs-tools-system-design.md",
+          "title": "文档工具系统设计",
+          "description": "文档中心和工具中心的完整设计方案",
+          "order": 2
+        },
+        {
+          "file": "sqlite-usage-guide.md",
+          "title": "SQLite扩展使用说明",
+          "description": "SQLite vs MySQL对比和使用指南",
+          "order": 3,
+          "badge": "重要"
+        },
+        {
+          "file": "system-summary.md",
+          "title": "系统架构总结",
+          "description": "BillfishManagerV2核心架构和设计思路",
+          "order": 4
+        },
+        {
+          "file": "cleanup-plan.md",
+          "title": "项目清理计划",
+          "description": "历史文件清理和重组方案",
+          "order": 5
+        },
+        {
+          "file": "cleanup-report.md",
+          "title": "项目清理报告",
+          "description": "实际清理过程和结果记录",
+          "order": 6
+        },
+        {
+          "file": "project-cleanup-plan.md",
+          "title": "项目文件清理和重组",
+          "description": "web-manager目录结构优化方案",
+          "order": 7
+        },
+        {
+          "file": "final-optimization-plan.md",
+          "title": "项目最终优化方案",
+          "description": "文档归档和目录规范化",
+          "order": 8
+        },
+        {
+          "file": "git-guide.md",
+          "title": "Git使用指南",
+          "description": "项目Git工作流和分支管理",
+          "order": 9
+        },
+        {
+          "file": "billfish-database-guide.md",
+          "title": "Billfish数据库完整指南",
+          "description": "深入解析Billfish软件数据库结构、预览图机制和开发要点",
+          "order": 10,
+          "badge": "新增"
+        }
+      ]
+    },
+    {
+      "id": "setup",
+      "name": "安装配置",
+      "icon": "⚙️",
+      "order": 4,
+      "description": "环境配置和安装指南",
+      "documents": [
+        {
+          "file": "sqlite-installation-complete.md",
+          "title": "SQLite3扩展安装完成",
+          "description": "SQLite3扩展安装步骤和验证方法",
+          "order": 1,
+          "badge": "配置"
+        }
+      ]
+    },
+    {
+      "id": "release-notes",
+      "name": "版本说明",
+      "icon": "📋",
+      "order": 5,
+      "description": "版本更新和发布说明",
+      "documents": [
+        {
+          "file": "v0.1.0.md",
+          "title": "v0.1.0 发布说明",
+          "description": "BillfishManagerV2和完整元数据支持",
+          "order": 1,
+          "badge": "最新"
+        },
+        {
+          "file": "version-summary-v0.1.0.md",
+          "title": "v0.1.0 版本总结",
+          "description": "详细的版本创建和统计信息",
+          "order": 2
+        },
+        {
+          "file": "changelog.md",
+          "title": "完整更新日志",
+          "description": "所有版本的详细更新记录",
+          "order": 3
+        }
+      ]
+    },
+    {
+      "id": "troubleshooting",
+      "name": "故障排除",
+      "icon": "🔍",
+      "order": 6,
+      "description": "常见问题和解决方案",
+      "documents": [
+        {
+          "file": "preview-missing.md",
+          "title": "预览图缺失问题",
+          "description": "预览图缺失的原因分析和解决方案",
+          "order": 1
+        },
+        {
+          "file": "generate-previews-guide.md",
+          "title": "预览图生成指南",
+          "description": "如何为文件生成预览图",
+          "order": 2
+        }
+      ]
+    }
+  ]
+}
