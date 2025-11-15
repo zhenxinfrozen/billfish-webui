@@ -37,17 +37,7 @@ web-manager/.htaccess.backup
 *.exe
 web-manager/sqlite3.exe
 
-# 大型媒体文件（所有视频格式）
-*.mp4
-*.avi
-*.mov
-*.mkv
-*.webm
-*.wmv
-*.flv
-*.m4v
-
-# 大型图片文件
+# 特定的大型设计文件（全局）
 *.psd
 *.ai
 *.eps
@@ -72,11 +62,15 @@ web-manager/sqlite3.exe
 .backup/
 **/.backup/
 
-# 媒体资源目录（太大，不适合版本控制）
+# 测试和媒体资源目录（针对特定目录，允许其他地方的媒体文件）
+demo-billfish/
 public/assets/viedeos/rzxme-billfish/
-demo-billfish/pics/
-demo-billfish/videos/
-demo-billfish/other/
+
+# 但是保留这些目录中的重要配置文件
+!demo-billfish/.gitkeep
+!demo-billfish/README.md
+!public/assets/viedeos/rzxme-billfish/.gitkeep
+!public/assets/viedeos/rzxme-billfish/README.md
 
 # Web manager 的数据分析文件（临时）
 web-manager/database-analysis.php
