@@ -62,36 +62,8 @@ web-manager/sqlite3.exe
 .backup/
 **/.backup/
 
-# 媒体文件类型（全局排除大型文件）
-*.mp4
-*.avi
-*.mov
-*.mkv
-*.wmv
-*.flv
-*.webm
-*.m4v
-
-# 大型图片文件（超过特定尺寸的）
-*.psd
-*.ai
-*.eps
-
-# 但是保留目录结构和小型示例文件
-!demo-billfish/
-!public/assets/viedeos/rzxme-billfish/
-!demo-billfish/.gitkeep
-!demo-billfish/README.md
-!public/assets/viedeos/rzxme-billfish/.gitkeep
-!public/assets/viedeos/rzxme-billfish/README.md
-
-# 保留小型图片文件（通常用于预览）
-!*.jpg
-!*.jpeg
-!*.png
-!*.gif
-!*.webp
-!*.bmp
+# 媒体和资源文件现在全部包含
+# 注意: 现在所有媒体文件都会被包含在Git中
 
 # Web manager 的数据分析文件（临时）
 web-manager/database-analysis.php
