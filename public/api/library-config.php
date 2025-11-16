@@ -244,11 +244,17 @@ class LibraryManager {
             return ['success' => false, 'error' => '资料库不存在'];
         }
         
-        // 验证目标路径
-        $type = $targetLibrary['type'] ?? 'computer';
-        $pathErrors = $this->validatePath($targetLibrary['original_path'] ?? $targetLibrary['path'], $type);
-        if (!empty($pathErrors)) {
-            return ['success' => false, 'errors' => $pathErrors];
+        // 解析路径用于验证
+        $actualPath = $this->resolveRelativePath($targetLibrary['path']);
+        
+        // 验证路径是否存在且是Billfish资料库
+        if (!is_dir($actualPath)) {
+            return ['success' => false, 'error' => '路径不存在: ' . $targetLibrary['path']];
+        }
+        
+        $dbPath = $actualPath . '/.bf/billfish.db';
+        if (!file_exists($dbPath)) {
+            return ['success' => false, 'error' => '该路径不是有效的Billfish资料库（缺少.bf/billfish.db文件）'];
         }
         
         // 备份当前配置
