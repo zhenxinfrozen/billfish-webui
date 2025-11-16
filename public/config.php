@@ -23,7 +23,7 @@ define('BILLFISH_WEB_VERSION', 'Git-' . $currentBranch);
 define('BILLFISH_WEB_BUILD_DATE', date('Y-m-d'));
 
 // Billfish 资源库路径
-define('BILLFISH_PATH', __DIR__ . '/demo-billfish');
+define('BILLFISH_PATH', 'S:/OneDrive-irm/Bill-Eagle/Bill-TUT');
 
 // 数据库路径
 define('BILLFISH_DB', BILLFISH_PATH . '\.bf\billfish.db');

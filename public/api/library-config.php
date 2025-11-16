@@ -144,11 +144,22 @@ class LibraryManager {
         
         // 标记当前激活的资料库
         foreach ($libraries as &$lib) {
-            $lib['active'] = ($lib['path'] === $currentPath);
+            // 解析路径用于比较
+            $libPath = $this->resolveRelativePath($lib['path']);
+            $comparePath = $this->resolveRelativePath($currentPath);
+            
+            // 标准化后比较（统一斜杠方向，移除末尾斜杠）
+            $libPathNormalized = rtrim(str_replace('\\', '/', $libPath), '/');
+            $comparePathNormalized = rtrim(str_replace('\\', '/', $comparePath), '/');
+            
+            $lib['active'] = ($libPathNormalized === $comparePathNormalized);
             
             // 获取资料库统计信息
-            if ($lib['active'] && is_dir($lib['path'])) {
-                $lib['stats'] = $this->getLibraryStats($lib['path']);
+            if ($lib['active']) {
+                $actualPath = $this->resolveRelativePath($lib['path']);
+                if (is_dir($actualPath)) {
+                    $lib['stats'] = $this->getLibraryStats($lib['path']);
+                }
             }
         }
         

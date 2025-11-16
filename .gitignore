@@ -42,6 +42,10 @@ web-manager/sqlite3.exe
 *.ai
 *.eps
 
+# Billfish回收站备份目录（多重备份，清空后仍保留）
+.recycle2/
+**/.recycle2/
+
 # 备份文件
 *.bak
 *.backup
