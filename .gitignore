@@ -43,12 +43,18 @@ web-manager/sqlite3.exe
 *.eps
 
 # Billfish 数据库文件（包含用户数据）
+# 但保留 demo-billfish 目录的数据库文件用于演示
 *.db
 *.db-journal
+!demo-billfish/.bf/*.db
+!demo-billfish/.bf/*.db-journal
 
 # Billfish 系统文件夹（完全忽略）
+# 但保留 demo-billfish 目录用于演示
 .bf/
 **/.bf/
+!demo-billfish/.bf/
+!demo-billfish/.bf/**
 
 # Billfish 缓存和临时文件
 .recycle/
@@ -57,6 +63,8 @@ web-manager/sqlite3.exe
 **/.recycle*/
 .preview/
 **/.preview/
+!demo-billfish/.bf/.preview/
+!demo-billfish/.bf/.preview/**
 .temp/
 **/.temp/
 .backup/
