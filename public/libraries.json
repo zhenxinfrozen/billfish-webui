@@ -68,8 +68,8 @@
             "id": "68f14150039d5",
             "name": "开发测试Billfish库",
             "type": "project",
-            "path": "D:\/VS CODE\/rzxme-billfish\/public\/assets\/viedeos\/rzxme-billfish",
-            "original_path": "public\/assets\/viedeos\/rzxme-billfish",
+            "path": "./assets/viedeos/rzxme-billfish",
+            "original_path": "assets/viedeos/rzxme-billfish",
             "description": "项目文档内开发测试Billfish库",
             "created_at": "2025-10-17 03:02:40"
         },
@@ -77,7 +77,7 @@
             "id": "68f3d2ba8a82c",
             "name": "01-网站根目录-数据库",
             "type": "project",
-            "path": "D:\/VS CODE\/rzxme-billfish\/demo-billfish",
+            "path": "./demo-billfish",
             "original_path": "demo-billfish",
             "description": "demo-billfish",
             "created_at": "2025-10-19 01:47:38"
