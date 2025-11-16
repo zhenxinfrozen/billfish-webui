@@ -435,11 +435,19 @@ class LibraryManager {
     private function getCurrentPath() {
         if (defined('BILLFISH_PATH')) {
             $path = BILLFISH_PATH;
-            // 如果是绝对路径，标准化
-            if (strpos($path, './') !== 0) {
-                return $this->normalizePath($path);
+            
+            // 检查是否是项目内路径（相对于projectRoot）
+            $projectRoot = rtrim(str_replace('\\', '/', $this->projectRoot), '/');
+            $normalizedPath = rtrim(str_replace('\\', '/', $path), '/');
+            
+            // 如果路径在项目根目录下，转换为相对路径格式
+            if (strpos($normalizedPath, $projectRoot) === 0) {
+                $relativePath = substr($normalizedPath, strlen($projectRoot) + 1);
+                return './' . $relativePath;
             }
-            return $path;
+            
+            // 否则返回标准化的绝对路径
+            return $this->normalizePath($path);
         }
         return null;
     }
