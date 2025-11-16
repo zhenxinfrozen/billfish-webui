@@ -1,304 +1,158 @@
-# Billfish 数据库快速调用指�? Billfish 数据库快速调用指�?
-
-
-
-> 📋 **文档说明**: 本文档为快速参考版本。详细技术分析请参阅�? 📋 **文档说明**: 本文档为快速参考版本。详细技术分析请参阅�?
-
-> - [billfish-database-schema.md](billfish-database-schema.md) - 完整数据库结构参�? - [billfish-database-schema.md](billfish-database-schema.md) - 完整数据库结构参�?
-
-> - [development-guide.md](development-guide.md) - 开发经验与问题解决> - [development-guide.md](development-guide.md) - 开发经验与问题解决
-
-
-
-## 概述## 概述
-
-
-
-本文档提供Billfish数据库的基础调用方法和核心SQL查询模式，适合快速集成和开发参考。本文档提供Billfish数据库的基础调用方法和核心SQL查询模式，适合快速集成和开发参考�?
-
-
-
-### 技术要�?## 技术要�?
-
-- **数据�?*: SQLite3 (只读模式推荐)- **数据�?*: SQLite3 (只读模式推荐)
-
-- **核心�?*: bf_file, bf_tag_v2, bf_material_userdata- **核心�?*: bf_file, bf_tag_v2, bf_material_userdata
-
-- **预览�?*: 分片存储，支持自定义缩略�? **预览�?*: 分片存储，支持自定义缩略�?
-
-
-
-------
-
-
-
-## 快速开�?# 快速开�?
-
-
-
-### 1. 基础连接### 1. 基础连接
-
-```php```php
-
-class BillfishManager {class BillfishManager {
-
-    private $db;    private $db;
-
-        
-
-    public function __construct($billfishPath) {    public function __construct($billfishPath) {
-
-        $dbPath = $billfishPath . '/.bf/billfish.db';        $dbPath = $billfishPath . '/.bf/billfish.db';
-
-        $this->db = new SQLite3($dbPath, SQLITE3_OPEN_READONLY);        $this->db = new SQLite3($dbPath, SQLITE3_OPEN_READONLY);
-
-    }    }
-
-}}
-
-``````
-
-
-
-### 2. 核心查询模式### 2. 核心查询模式
-
-
-
-#### 获取文件列表#### 获取文件列表
-
-```php```php
-
-public function getAllFiles($limit = 50, $offset = 0) {public function getAllFiles($limit = 50, $offset = 0) {
-
-    $query = "    $query = "
-
-        SELECT         SELECT 
-
-            f.id,            f.id,
-
-            f.name,            f.name,
-
-            f.file_size,            f.file_size,
-
-            f.ctime,            f.ctime,
-
-            fo.name as folder_name,            fo.name as folder_name,
-
-            t.name as type_name            t.name as type_name
-
-        FROM bf_file f        FROM bf_file f
-
-        LEFT JOIN bf_folder fo ON f.pid = fo.id        LEFT JOIN bf_folder fo ON f.pid = fo.id
-
-        LEFT JOIN bf_type t ON f.tid = t.tid        LEFT JOIN bf_type t ON f.tid = t.tid
-
-        WHERE f.is_hide = 0        WHERE f.is_hide = 0
-
-        ORDER BY f.ctime DESC        ORDER BY f.ctime DESC
-
-        LIMIT ? OFFSET ?        LIMIT ? OFFSET ?
-
-    ";    ";
-
-        
-
-    $stmt = $this->db->prepare($query);    $stmt = $this->db->prepare($query);
-
-    $stmt->bindValue(1, $limit, SQLITE3_INTEGER);    $stmt->bindValue(1, $limit, SQLITE3_INTEGER);
-
-    $stmt->bindValue(2, $offset, SQLITE3_INTEGER);    $stmt->bindValue(2, $offset, SQLITE3_INTEGER);
-
-    return $stmt->execute();    return $stmt->execute();
-
-}}
-
-``````
-
-
-
-#### 获取文件详细信息#### 获取文件详细信息
-
-```php```php
-
-public function getFileById($id) {public function getFileById($id) {
-
-    $query = "    $query = "
-
-        SELECT         SELECT 
-
-            f.*,            f.*,
-
-            fo.name as folder_name,            fo.name as folder_name,
-
-            t.name as type_name,            t.name as type_name,
-
-            mv2.w, mv2.h,            mv2.w, mv2.h,
-
-            mud.origin, mud.colors, mud.remarks, mud.cover_tid            mud.origin, mud.colors, mud.remarks, mud.cover_tid
-
-        FROM bf_file f        FROM bf_file f
-
-        LEFT JOIN bf_folder fo ON f.pid = fo.id        LEFT JOIN bf_folder fo ON f.pid = fo.id
-
-        LEFT JOIN bf_type t ON f.tid = t.tid        LEFT JOIN bf_type t ON f.tid = t.tid
-
-        LEFT JOIN bf_material_v2 mv2 ON f.id = mv2.file_id        LEFT JOIN bf_material_v2 mv2 ON f.id = mv2.file_id
-
-        LEFT JOIN bf_material_userdata mud ON f.id = mud.id        LEFT JOIN bf_material_userdata mud ON f.id = mud.id
-
-        WHERE f.id = ? AND f.is_hide = 0        WHERE f.id = ? AND f.is_hide = 0
-
-    ";    ";
-
-        
-
-    $stmt = $this->db->prepare($query);    $stmt = $this->db->prepare($query);
-
-    $stmt->bindValue(1, $id, SQLITE3_INTEGER);    $stmt->bindValue(1, $id, SQLITE3_INTEGER);
-
-    return $stmt->execute()->fetchArray(SQLITE3_ASSOC);    return $stmt->execute()->fetchArray(SQLITE3_ASSOC);
-
-}}
-
-``````
-
-
-
-#### 标签查询 (使用bf_tag_v2)#### 标签查询 (使用bf_tag_v2)
-
-```php```php
-
-// 获取所有标�?/ 获取所有标�?
-
-public function getAllTags() {public function getAllTags() {
-
-    $query = "SELECT id, name, color FROM bf_tag_v2 ORDER BY name";    $query = "SELECT id, name, color FROM bf_tag_v2 ORDER BY name";
-
-    return $this->db->query($query);    return $this->db->query($query);
-
-}}
-
-
-
-// 获取文件的标�?/ 获取文件的标�?
-
-public function getFileTags($fileId) {public function getFileTags($fileId) {
-
-    $query = "    $query = "
-
-        SELECT tv2.id, tv2.name, tv2.color        SELECT tv2.id, tv2.name, tv2.color
-
-        FROM bf_tag_join_file tjf        FROM bf_tag_join_file tjf
-
-        LEFT JOIN bf_tag_v2 tv2 ON tjf.tag_id = tv2.id        LEFT JOIN bf_tag_v2 tv2 ON tjf.tag_id = tv2.id
-
-        WHERE tjf.file_id = ?        WHERE tjf.file_id = ?
-
-    ";    ";
-
-        
-
-    $stmt = $this->db->prepare($query);    $stmt = $this->db->prepare($query);
-
-    $stmt->bindValue(1, $fileId, SQLITE3_INTEGER);    $stmt->bindValue(1, $fileId, SQLITE3_INTEGER);
-
-    return $stmt->execute();    return $stmt->execute();
-
-}}
-
-
-
-// 按标签过滤文�?/ 按标签过滤文�?
-
-public function getFilesByTag($tagId) {public function getFilesByTag($tagId) {
-
-    $query = "    $query = "
-
-        SELECT f.*, tv2.name as tag_name        SELECT f.*, tv2.name as tag_name
-
-        FROM bf_file f        FROM bf_file f
-
-        INNER JOIN bf_tag_join_file tjf ON f.id = tjf.file_id        INNER JOIN bf_tag_join_file tjf ON f.id = tjf.file_id
-
-        LEFT JOIN bf_tag_v2 tv2 ON tjf.tag_id = tv2.id        LEFT JOIN bf_tag_v2 tv2 ON tjf.tag_id = tv2.id
-
-        WHERE tjf.tag_id = ? AND f.is_hide = 0        WHERE tjf.tag_id = ? AND f.is_hide = 0
-
-        ORDER BY f.ctime DESC        ORDER BY f.ctime DESC
-
-    ";    ";
-
-        
-
-    $stmt = $this->db->prepare($query);    $stmt = $this->db->prepare($query);
-
-    $stmt->bindValue(1, $tagId, SQLITE3_INTEGER);    $stmt->bindValue(1, $tagId, SQLITE3_INTEGER);
-
-    return $stmt->execute();    return $stmt->execute();
-
-}}
-
-``````
-
-
-
-### 3. 预览图处�?## 3. 预览图处�?
-
-
-
-#### 自定义缩略图优先�?### 自定义缩略图优先�?
-
-```php```php
-
-public function getPreviewPath($fileId) {public function getPreviewPath($fileId) {
-
-    $hexFolder = sprintf("%02x", $fileId % 256);    $hexFolder = sprintf("%02x", $fileId % 256);
-
-    $previewDir = $this->billfishPath . "/.bf/.preview/{$hexFolder}/";    $previewDir = $this->billfishPath . "/.bf/.preview/{$hexFolder}/";
-
-        
-
-    // 优先�? 自定�?> 默认    // 优先�? 自定�?> 默认
-
-    $extensions = ['.cover.png', '.cover.webp', '.small.webp', '.hd.webp'];    $extensions = ['.cover.png', '.cover.webp', '.small.webp', '.hd.webp'];
-
-        
-
-    foreach ($extensions as $ext) {    foreach ($extensions as $ext) {
-
-        $path = $previewDir . $fileId . $ext;        $path = $previewDir . $fileId . $ext;
-
-        if (file_exists($path)) {        if (file_exists($path)) {
-
-            return $path;            return $path;
-
-        }        }
-
-    }    }
-
-        
-
-    return null;    return null;
-
-}}
-
-
-
-public function getPreviewUrl($fileId) {public function getPreviewUrl($fileId) {
-
-    $previewPath = $this->getPreviewPath($fileId);    $previewPath = $this->getPreviewPath($fileId);
-
-    if ($previewPath && file_exists($previewPath)) {    if ($previewPath && file_exists($previewPath)) {
-
-        $timestamp = filemtime($previewPath);        $timestamp = filemtime($previewPath);
-
-        return "preview.php?id={$fileId}&v={$timestamp}";        return "preview.php?id={$fileId}&v={$timestamp}";
-
-    }    }
-
-    return null;    return null;
-
-}}
+# Billfish 数据库快速调用指南
+
+> 📋 **文档说明**: 本文档为快速参考版本。详细技术分析请参阅：
+
+> - [billfish-database-schema.md](billfish-database-schema.md) - 完整数据库结构参考
+> - [development-guide.md](development-guide.md) - 开发经验与问题解决
+
+## 概述
+
+本文档提供 Billfish 数据库的基础调用方法和核心 SQL 查询模式，适合快速集成和开发参考。
+
+### 技术要求
+
+- **数据库**: SQLite3 (只读模式推荐)
+- **核心表**: bf_file, bf_tag_v2, bf_material_userdata
+- **预览图**: 分片存储，支持自定义缩略图
+
+---
+
+## 快速开始
+
+
+### 1. 基础连接
+
+```php
+class BillfishManager {
+    private $db;
+    
+    public function __construct($billfishPath) {
+        $dbPath = $billfishPath . '/.bf/billfish.db';
+        $this->db = new SQLite3($dbPath, SQLITE3_OPEN_READONLY);
+    }
+}
+```
+
+### 2. 核心查询模式
+#### 获取文件列表
+
+```php
+public function getAllFiles($limit = 50, $offset = 0) {
+    $query = "
+        SELECT 
+            f.id,
+            f.name,
+            f.file_size,
+            f.ctime,
+            fo.name as folder_name,
+            t.name as type_name
+        FROM bf_file f
+        LEFT JOIN bf_folder fo ON f.pid = fo.id
+        LEFT JOIN bf_type t ON f.tid = t.tid
+        WHERE f.is_hide = 0
+        ORDER BY f.ctime DESC
+        LIMIT ? OFFSET ?
+    ";
+    
+    $stmt = $this->db->prepare($query);
+    $stmt->bindValue(1, $limit, SQLITE3_INTEGER);
+    $stmt->bindValue(2, $offset, SQLITE3_INTEGER);
+    return $stmt->execute();
+}
+```
+#### 获取文件详细信息
+
+```php
+public function getFileById($id) {
+    $query = "
+        SELECT 
+            f.*,
+            fo.name as folder_name,
+            t.name as type_name,
+            mv2.w, mv2.h,
+            mud.origin, mud.colors, mud.remarks, mud.cover_tid
+        FROM bf_file f
+        LEFT JOIN bf_folder fo ON f.pid = fo.id
+        LEFT JOIN bf_type t ON f.tid = t.tid
+        LEFT JOIN bf_material_v2 mv2 ON f.id = mv2.file_id
+        LEFT JOIN bf_material_userdata mud ON f.id = mud.id
+        WHERE f.id = ? AND f.is_hide = 0
+    ";
+    
+    $stmt = $this->db->prepare($query);
+    $stmt->bindValue(1, $id, SQLITE3_INTEGER);
+    return $stmt->execute()->fetchArray(SQLITE3_ASSOC);
+}
+```
+#### 标签查询 (使用bf_tag_v2)
+
+```php
+// 获取所有标签
+public function getAllTags() {
+    $query = "SELECT id, name, color FROM bf_tag_v2 ORDER BY name";
+    return $this->db->query($query);
+}
+
+// 获取文件的标签
+public function getFileTags($fileId) {
+    $query = "
+        SELECT tv2.id, tv2.name, tv2.color
+        FROM bf_tag_join_file tjf
+        LEFT JOIN bf_tag_v2 tv2 ON tjf.tag_id = tv2.id
+        WHERE tjf.file_id = ?
+    ";
+    
+    $stmt = $this->db->prepare($query);
+    $stmt->bindValue(1, $fileId, SQLITE3_INTEGER);
+    return $stmt->execute();
+}
+
+// 按标签过滤文件
+public function getFilesByTag($tagId) {
+    $query = "
+        SELECT f.*, tv2.name as tag_name
+        FROM bf_file f
+        INNER JOIN bf_tag_join_file tjf ON f.id = tjf.file_id
+        LEFT JOIN bf_tag_v2 tv2 ON tjf.tag_id = tv2.id
+        WHERE tjf.tag_id = ? AND f.is_hide = 0
+        ORDER BY f.ctime DESC
+    ";
+    
+    $stmt = $this->db->prepare($query);
+    $stmt->bindValue(1, $tagId, SQLITE3_INTEGER);
+    return $stmt->execute();
+}
+```
+### 3. 预览图处理
+
+#### 自定义缩略图优先级
+
+```php
+public function getPreviewPath($fileId) {
+    $hexFolder = sprintf("%02x", $fileId % 256);
+    $previewDir = $this->billfishPath . "/.bf/.preview/{$hexFolder}/";
+    
+    // 优先级： 自定义 > 默认
+    $extensions = ['.cover.png', '.cover.webp', '.small.webp', '.hd.webp'];
+    
+    foreach ($extensions as $ext) {
+        $path = $previewDir . $fileId . $ext;
+        if (file_exists($path)) {
+            return $path;
+        }
+    }
+    
+    return null;
+}
+
+public function getPreviewUrl($fileId) {
+    $previewPath = $this->getPreviewPath($fileId);
+    if ($previewPath && file_exists($previewPath)) {
+        $timestamp = filemtime($previewPath);
+        return "preview.php?id={$fileId}&v={$timestamp}";
+    }
+    return null;
+}
 
 ```
 
@@ -307,8 +161,8 @@ public function getPreviewUrl($fileId) {public function getPreviewUrl($fileId) {
 > 📋 **更新说明**: 移除自定义缩略图生成逻辑，完全遵循Billfish原生规则
 
 **问题背景**:
-- 新增JPG图片在纯图片文件夹中不显示缩略图
-- 早期实现通过动态生成缩略图解决，但与Billfish设计理念冲突
+- 新增 JPG 图片在纯图片文件夹中不显示缩略图
+- 早期实现通过动态生成缩略图解决，但与 Billfish 设计理念冲突
 
 **核心发现**:
 - `thumb_tid = 60`: Billfish已生成缩略图，使用标准缩略图路径

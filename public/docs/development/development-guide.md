@@ -2,22 +2,22 @@
 
 ## 概述
 
-本文档记录在开发Billfish Web Manager过程中遇到的问题、解决方案和经验总结。适合开发者快速了解项目难点和最佳实践�?
+本文档记录在开发Billfish Web Manager过程中遇到的问题、解决方案和经验总结。适合开发者快速了解项目难点和最佳实践。
 
 ---
 
-## 重要发现与解决方�?
+## 重要发现与解决方案
 
-### 1. 标签系统真相 🏷�?
+### 1. 标签系统真相 🏷️
 
 #### 问题现象
-- Web界面显示"标签#4"�?标签#8"等占位符
+- Web界面显示"标签#4"、"标签#8"等占位符
 - 无法获取真实标签名称
 
 #### 调查过程
 ```php
-// 初始查询 - 发现bf_tag表为�?
-SELECT * FROM bf_tag;  // 返回0�?
+// 初始查询 - 发现bf_tag表为空
+SELECT * FROM bf_tag;  // 返回0条
 
 // 探索发现 - bf_tag_v2表有数据
 SELECT * FROM bf_tag_v2;
@@ -26,7 +26,7 @@ SELECT * FROM bf_tag_v2;
 
 #### 解决方案
 ```php
-// �?错误方式
+// ✖️ 错误方式
 FROM bf_tag_join_file tjf LEFT JOIN bf_tag t ON tjf.tag_id = t.id
 
 // �?正确方式

@@ -2,15 +2,15 @@
 
 ## 测试结果总结
 
-�?**NAS连接测试**: 完美通过  
-�?**网络性能**: 优秀 (0.38ms延迟)  
-�?**资料库发�?*: 6个完整的Billfish�? 
-�?**数据库连�?*: 全部正常  
-�?**总文件数**: 163,075个文件，�?4.75GB
+✅**NAS连接测试**: 完美通过  
+✅**网络性能**: 优秀 (0.38ms延迟)  
+✅**资料库发现**: 6个完整的Billfish库 
+✅**数据库连接**: 全部正常  
+✅**总文件数**: 163,075个文件，约4.75GB
 
 ---
 
-## 🚀 立即可用的解决方�?
+## 🚀 立即可用的解决方案
 
 ### 本地使用 (推荐)
 
@@ -43,12 +43,12 @@ sudo apt-get install nginx php8.1-fpm php8.1-sqlite3 cifs-utils git
 
 # 2. 挂载NAS
 sudo mkdir -p /mnt/nas/billfish
-sudo mount -t cifs //YOUR-NAS-IP/SHARE-NAME /mnt/nas/billfish \
-  -o username=YOUR-USERNAME,password=YOUR-PASSWORD,uid=www-data,gid=www-data,iocharset=utf8
+sudo mount -t cifs //你的NAS-IP/OneDrive-irm/Bill-Eagle /mnt/nas/billfish \
+  -o username=你的用户�?password=你的密码,uid=www-data,gid=www-data,iocharset=utf8
 
 # 3. 部署Web项目
 cd /var/www/
-sudo git clone https://github.com/zhenxinfrozen/billfish-webui.git
+sudo git clone https://github.com/yourusername/billfish-public.git
 sudo chown -R www-data:www-data billfish-public
 
 # 4. 配置PHP
