@@ -62,7 +62,7 @@
             <option value="vps">VPS远程</option>
         </select>
         <label>路径</label>
-        <input type="text" name="path" id="path-input" required placeholder="项目内: public/assets/viedeos/rzxme-billfish">
+        <input type="text" name="path" id="path-input" required placeholder="项目内: demo-billfish 或 assets/viedeos/rzxme-billfish">
         <div style="margin-bottom: 12px;">
             <small id="path-hint" style="color: #666;">
                 💡 <b>填写说明：</b>输入资料库文件夹的完整路径。系统会自动检测和验证路径是否存在。
@@ -378,8 +378,8 @@ document.querySelector('select[name="type"]').onchange = function() {
     
     switch(this.value) {
         case 'project':
-            pathInput.placeholder = '如：publish/assets/viedeos/rzxme-billfish';
-            pathHint.innerHTML = '💡 <b>项目内：</b>相对于网站根目录的路径，适合开发环境测试';
+            pathInput.placeholder = '如：demo-billfish 或 assets/viedeos/rzxme-billfish';
+            pathHint.innerHTML = '💡 <b>项目内：</b>相对于public目录的路径，适合开发环境测试。不要以斜杠开头。';
             normalizeBtn.style.display = 'none';
             break;
         case 'computer':
