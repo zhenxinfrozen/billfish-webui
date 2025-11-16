@@ -40,12 +40,12 @@
 <div class="container">
     <h1>Billfish 资料库配置管理</h1>
     <div class="tips">
-        <b>📚 支持四种资料库位置：</b><br>
-        1. <b>项目内本地</b>：项目文件夹里的路径，如 <code>public/assets/viedeos/rzxme-billfish</code>（推荐用于开发测试）<br>
-        2. <b>电脑本地</b>：你电脑上的文件夹，如 <code>D:/我的素材库</code>（直接复制资源管理器路径即可）<br>
-        3. <b>NAS/网络</b>：网络存储或云盘，如 <code>S:/OneDrive/素材</code>（需要先映射网络驱动器）<br>
-        4. <b>VPS远程</b>：服务器上的路径，如 <code>/home/user/billfish-data</code>（Linux服务器格式）<br>
-        <span style="color:#888;">💡 选择后点击"切换"按钮，系统会自动更新配置文件，无需手动修改代码。</span>
+        <b>📚 支持两种资料库路径配置方式：</b><br>
+        1. <b>项目内相对路径</b>（推荐用于开发测试）：<code>./assets/viedeos/rzxme-billfish</code><br>
+           <span style="color:#666;">→ 相对于 public/ 目录，可跨环境移植</span><br><br>
+        2. <b>绝对路径</b>（用于本地、VPS、NAS等）：<br>
+           <span style="color:#666;">→ Windows示例：<code>D:/demo-billfish</code> 或 <code>S:/OneDrive/素材</code></span><br>
+           <span style="color:#666;">→ Linux/VPS示例：<code>/www/wwwroot/billfish.rzx.me/demo-billfish</code></span>
     </div>
 
     <div class="lib-list" id="lib-list"></div>
@@ -56,13 +56,11 @@
         <input type="text" name="name" required placeholder="如：主素材库">
         <label>类型</label>
         <select name="type">
-            <option value="project">项目内本地</option>
-            <option value="computer">电脑本地</option>
-            <option value="nas">NAS/网络</option>
-            <option value="vps">VPS远程</option>
+            <option value="project">项目内相对路径</option>
+            <option value="computer">绝对路径（本地/VPS/NAS）</option>
         </select>
         <label>路径</label>
-        <input type="text" name="path" id="path-input" required placeholder="项目内: demo-billfish 或 assets/viedeos/rzxme-billfish">
+        <input type="text" name="path" id="path-input" required placeholder="项目内用 ./xxx  |  其他用绝对路径 D:/xxx 或 /www/xxx">
         <div style="margin-bottom: 12px;">
             <small id="path-hint" style="color: #666;">
                 💡 <b>填写说明：</b>输入资料库文件夹的完整路径。系统会自动检测和验证路径是否存在。
@@ -78,12 +76,12 @@
     </form>
 
     <form class="nas-scan" id="nas-scan-form">
-        <h2>扫描NAS目录下所有Billfish库</h2>
-        <label>NAS根路径</label>
+        <h2>扫描特定目录下所有Billfish库</h2>
+        <label>扫描目录</label>
         <input type="text" name="nas_path" id="nas-path-input" placeholder="如：S:/OneDrive-irm/Bill-Eagle">
         <div style="margin-bottom: 12px;">
             <small style="color: #666;">
-                💡 <b>批量导入：</b>输入NAS根目录路径，系统会自动扫描并添加所有包含Billfish数据的文件夹。
+                💡 <b>批量导入：</b>输入要扫描的根目录路径，系统会自动扫描并添加所有包含Billfish数据的文件夹。
             </small>
             <button type="button" id="normalize-nas-path-btn" style="margin-left: 8px; padding: 4px 8px; font-size: 0.85em; background: #f0f0f0; color: #333;">
                 🔄 格式化路径
@@ -378,24 +376,16 @@ document.querySelector('select[name="type"]').onchange = function() {
     
     switch(this.value) {
         case 'project':
-            pathInput.placeholder = '如：demo-billfish 或 assets/viedeos/rzxme-billfish';
-            pathHint.innerHTML = '💡 <b>项目内：</b>相对于public目录的路径，适合开发环境测试。不要以斜杠开头。';
+            pathInput.placeholder = '如：./assets/viedeos/rzxme-billfish';
+            pathHint.innerHTML = '💡 <b>项目内相对路径：</b>使用 <code>./</code> 开头，相对于public目录。<br>示例：<code>./assets/viedeos/rzxme-billfish</code>';
             normalizeBtn.style.display = 'none';
             break;
         case 'computer':
-            pathInput.placeholder = '如：D:/我的素材库';
-            pathHint.innerHTML = '💡 <b>本地电脑：</b>直接复制文件夹路径粘贴即可，系统会自动处理格式';
+            pathInput.placeholder = 'Windows: D:/demo-billfish  |  Linux: /www/wwwroot/xxx/demo-billfish';
+            pathHint.innerHTML = '💡 <b>绝对路径：</b>填写资源库的完整路径地址<br>' +
+                '• Windows本地示例：<code>D:/demo-billfish</code> 或 <code>S:/OneDrive/Bill-Eagle/xxx</code><br>' +
+                '• Linux/VPS示例：<code>/www/wwwroot/billfish.rzx.me/billfish-webui-0.0.3/demo-billfish</code>';
             normalizeBtn.style.display = 'inline-block';
-            break;
-        case 'nas':
-            pathInput.placeholder = '如：S:/OneDrive/素材';
-            pathHint.innerHTML = '💡 <b>网络存储：</b>映射的网络驱动器路径，支持自动格式转换';
-            normalizeBtn.style.display = 'inline-block';
-            break;
-        case 'vps':
-            pathInput.placeholder = '如：/home/user/billfish-data';
-            pathHint.innerHTML = '💡 <b>服务器路径：</b>Linux/Unix格式的绝对路径，适合VPS部署';
-            normalizeBtn.style.display = 'none';
             break;
     }
 };

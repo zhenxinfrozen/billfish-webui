@@ -36,11 +36,16 @@ class LibraryManager {
         $path = trim($path);
         
         if ($type === 'project') {
-            // 项目内相对路径处理
+            // 项目相对路径处理
             $path = str_replace('\\', '/', $path);
-            $path = ltrim($path, '/');  // 移除开头的斜杠
             
-            // 不转换为绝对路径，保持相对路径格式，前缀 ./
+            // 如果已经是 ../ 或 ./ 开头，直接返回
+            if (strpos($path, '../') === 0 || strpos($path, './') === 0) {
+                return $path;
+            }
+            
+            // 否则添加 ./ 前缀
+            $path = ltrim($path, '/');
             return './' . $path;
         }
         
@@ -60,9 +65,10 @@ class LibraryManager {
      * 将相对路径转换为绝对路径（用于实际访问文件）
      */
     private function resolveRelativePath($path) {
-        // 如果是相对路径（以 ./ 开头）
-        if (strpos($path, './') === 0) {
-            return $this->projectRoot . '/' . substr($path, 2);
+        // 如果是相对路径（以 ./ 或 ../ 开头）
+        if (strpos($path, './') === 0 || strpos($path, '../') === 0) {
+            // 相对于 public 目录解析
+            return realpath($this->projectRoot . '/' . $path) ?: $this->projectRoot . '/' . $path;
         }
         // 否则返回原路径
         return $path;
@@ -112,8 +118,8 @@ class LibraryManager {
      * 检查路径格式是否有效
      */
     private function isValidPathFormat($path) {
-        // 相对路径（项目内）
-        if (strpos($path, './') === 0) {
+        // 相对路径（项目内）- 支持 ./ 和 ../
+        if (strpos($path, './') === 0 || strpos($path, '../') === 0) {
             return true;
         }
         

@@ -1,10 +1,10 @@
 {
-    "updated_at": "2025-10-19 01:47:38",
+    "updated_at": "2025-11-16 23:22:21",
     "libraries": [
         {
             "id": "68efe4ccd9ad9",
             "name": "Bill-ArtBooks",
-            "type": "nas",
+            "type": "computer",
             "path": "S:\/OneDrive-irm\/Bill-Eagle\/Bill-ArtBooks",
             "original_path": "S:\/OneDrive-irm\/Bill-Eagle\/Bill-ArtBooks",
             "description": "NAS批量导入",
@@ -13,7 +13,7 @@
         {
             "id": "68efe4ccdb816",
             "name": "Bill-Material",
-            "type": "nas",
+            "type": "computer",
             "path": "S:\/OneDrive-irm\/Bill-Eagle\/Bill-Material",
             "original_path": "S:\/OneDrive-irm\/Bill-Eagle\/Bill-Material",
             "description": "NAS批量导入",
@@ -22,7 +22,7 @@
         {
             "id": "68efe4ccdd093",
             "name": "Bill-SD-Blender",
-            "type": "nas",
+            "type": "computer",
             "path": "S:\/OneDrive-irm\/Bill-Eagle\/Bill-SD-Blender",
             "original_path": "S:\/OneDrive-irm\/Bill-Eagle\/Bill-SD-Blender",
             "description": "NAS批量导入",
@@ -31,7 +31,7 @@
         {
             "id": "68efe4ccde713",
             "name": "Bill-Storyboard",
-            "type": "nas",
+            "type": "computer",
             "path": "S:\/OneDrive-irm\/Bill-Eagle\/Bill-Storyboard",
             "original_path": "S:\/OneDrive-irm\/Bill-Eagle\/Bill-Storyboard",
             "description": "NAS批量导入",
@@ -40,7 +40,7 @@
         {
             "id": "68efe4ccdfc36",
             "name": "Bill-TUT",
-            "type": "nas",
+            "type": "computer",
             "path": "S:\/OneDrive-irm\/Bill-Eagle\/Bill-TUT",
             "original_path": "S:\/OneDrive-irm\/Bill-Eagle\/Bill-TUT",
             "description": "NAS批量导入",
@@ -49,7 +49,7 @@
         {
             "id": "68efe4cce13a1",
             "name": "Bill-Videos",
-            "type": "nas",
+            "type": "computer",
             "path": "S:\/OneDrive-irm\/Bill-Eagle\/Bill-Videos",
             "original_path": "S:\/OneDrive-irm\/Bill-Eagle\/Bill-Videos",
             "description": "NAS批量导入",
@@ -58,7 +58,7 @@
         {
             "id": "68f12eb9caf3e",
             "name": "Bill-Girls-collection.pack",
-            "type": "nas",
+            "type": "computer",
             "path": "Z:\/NAS-Library\/Lib_Pics\/Bill-Girls-collection.pack",
             "original_path": "Z:\/NAS-Library\/Lib_Pics\/Bill-Girls-collection.pack",
             "description": "NAS批量导入",
@@ -68,19 +68,19 @@
             "id": "68f14150039d5",
             "name": "开发测试Billfish库",
             "type": "project",
-            "path": "./assets/viedeos/rzxme-billfish",
-            "original_path": "assets/viedeos/rzxme-billfish",
+            "path": ".\/assets\/viedeos\/rzxme-billfish",
+            "original_path": "assets\/viedeos\/rzxme-billfish",
             "description": "项目文档内开发测试Billfish库",
             "created_at": "2025-10-17 03:02:40"
         },
         {
-            "id": "68f3d2ba8a82c",
-            "name": "01-网站根目录-数据库",
-            "type": "project",
-            "path": "./demo-billfish",
-            "original_path": "demo-billfish",
-            "description": "demo-billfish",
-            "created_at": "2025-10-19 01:47:38"
+            "id": "6919ec1e5df71",
+            "name": "项目外本地简单测试库",
+            "type": "computer",
+            "path": "D:\/VS CODE\/rzxme-billfish\/demo-billfish",
+            "original_path": "D:\/VS CODE\/rzxme-billfish\/demo-billfish",
+            "description": "public外资源库",
+            "created_at": "2025-11-16 23:22:06"
         }
     ]
 }
