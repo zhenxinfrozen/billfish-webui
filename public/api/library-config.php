@@ -263,10 +263,7 @@ class LibraryManager {
             return ['success' => false, 'error' => '该路径不是有效的Billfish资料库（缺少.bf/billfish.db文件）'];
         }
         
-        // 备份当前配置
-        $this->backupConfig();
-        
-        // 更新配置文件
+        // 更新配置文件（验证通过后才更新，无需备份）
         if ($this->updateConfig($targetLibrary['path'])) {
             return ['success' => true, 'library' => $targetLibrary];
         } else {
@@ -462,14 +459,6 @@ class LibraryManager {
             return $this->normalizePath($path);
         }
         return null;
-    }
-    
-    /**
-     * 备份配置文件
-     */
-    private function backupConfig() {
-        $backupFile = $this->configFile . '.backup.' . date('Y-m-d-H-i-s');
-        copy($this->configFile, $backupFile);
     }
     
     /**

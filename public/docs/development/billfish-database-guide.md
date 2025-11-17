@@ -1,894 +1,416 @@
-# Billfish 数据库快速调用指南
+# Billfish 数据库完整指南
 
-> 📋 **文档说明**: 本文档为快速参考版本。详细技术分析请参阅：
+本文档详细介绍 Billfish 的 SQLite 数据库结构和使用方法。
 
-> - [billfish-database-schema.md](billfish-database-schema.md) - 完整数据库结构参考
-> - [development-guide.md](development-guide.md) - 开发经验与问题解决
+## 数据库概述
 
-## 概述
+Billfish 使用 SQLite3 数据库存储素材信息、文件夹结构、标签等数据。
 
-本文档提供 Billfish 数据库的基础调用方法和核心 SQL 查询模式，适合快速集成和开发参考。
-
-### 技术要求
-
-- **数据库**: SQLite3 (只读模式推荐)
-- **核心表**: bf_file, bf_tag_v2, bf_material_userdata
-- **预览图**: 分片存储，支持自定义缩略图
-
----
-
-## 快速开始
-
-
-### 1. 基础连接
-
-```php
-class BillfishManager {
-    private $db;
-    
-    public function __construct($billfishPath) {
-        $dbPath = $billfishPath . '/.bf/billfish.db';
-        $this->db = new SQLite3($dbPath, SQLITE3_OPEN_READONLY);
-    }
-}
-```
-
-### 2. 核心查询模式
-#### 获取文件列表
-
-```php
-public function getAllFiles($limit = 50, $offset = 0) {
-    $query = "
-        SELECT 
-            f.id,
-            f.name,
-            f.file_size,
-            f.ctime,
-            fo.name as folder_name,
-            t.name as type_name
-        FROM bf_file f
-        LEFT JOIN bf_folder fo ON f.pid = fo.id
-        LEFT JOIN bf_type t ON f.tid = t.tid
-        WHERE f.is_hide = 0
-        ORDER BY f.ctime DESC
-        LIMIT ? OFFSET ?
-    ";
-    
-    $stmt = $this->db->prepare($query);
-    $stmt->bindValue(1, $limit, SQLITE3_INTEGER);
-    $stmt->bindValue(2, $offset, SQLITE3_INTEGER);
-    return $stmt->execute();
-}
-```
-#### 获取文件详细信息
-
-```php
-public function getFileById($id) {
-    $query = "
-        SELECT 
-            f.*,
-            fo.name as folder_name,
-            t.name as type_name,
-            mv2.w, mv2.h,
-            mud.origin, mud.colors, mud.remarks, mud.cover_tid
-        FROM bf_file f
-        LEFT JOIN bf_folder fo ON f.pid = fo.id
-        LEFT JOIN bf_type t ON f.tid = t.tid
-        LEFT JOIN bf_material_v2 mv2 ON f.id = mv2.file_id
-        LEFT JOIN bf_material_userdata mud ON f.id = mud.id
-        WHERE f.id = ? AND f.is_hide = 0
-    ";
-    
-    $stmt = $this->db->prepare($query);
-    $stmt->bindValue(1, $id, SQLITE3_INTEGER);
-    return $stmt->execute()->fetchArray(SQLITE3_ASSOC);
-}
-```
-#### 标签查询 (使用bf_tag_v2)
-
-```php
-// 获取所有标签
-public function getAllTags() {
-    $query = "SELECT id, name, color FROM bf_tag_v2 ORDER BY name";
-    return $this->db->query($query);
-}
-
-// 获取文件的标签
-public function getFileTags($fileId) {
-    $query = "
-        SELECT tv2.id, tv2.name, tv2.color
-        FROM bf_tag_join_file tjf
-        LEFT JOIN bf_tag_v2 tv2 ON tjf.tag_id = tv2.id
-        WHERE tjf.file_id = ?
-    ";
-    
-    $stmt = $this->db->prepare($query);
-    $stmt->bindValue(1, $fileId, SQLITE3_INTEGER);
-    return $stmt->execute();
-}
-
-// 按标签过滤文件
-public function getFilesByTag($tagId) {
-    $query = "
-        SELECT f.*, tv2.name as tag_name
-        FROM bf_file f
-        INNER JOIN bf_tag_join_file tjf ON f.id = tjf.file_id
-        LEFT JOIN bf_tag_v2 tv2 ON tjf.tag_id = tv2.id
-        WHERE tjf.tag_id = ? AND f.is_hide = 0
-        ORDER BY f.ctime DESC
-    ";
-    
-    $stmt = $this->db->prepare($query);
-    $stmt->bindValue(1, $tagId, SQLITE3_INTEGER);
-    return $stmt->execute();
-}
-```
-### 3. 预览图处理
-
-#### 自定义缩略图优先级
-
-```php
-public function getPreviewPath($fileId) {
-    $hexFolder = sprintf("%02x", $fileId % 256);
-    $previewDir = $this->billfishPath . "/.bf/.preview/{$hexFolder}/";
-    
-    // 优先级： 自定义 > 默认
-    $extensions = ['.cover.png', '.cover.webp', '.small.webp', '.hd.webp'];
-    
-    foreach ($extensions as $ext) {
-        $path = $previewDir . $fileId . $ext;
-        if (file_exists($path)) {
-            return $path;
-        }
-    }
-    
-    return null;
-}
-
-public function getPreviewUrl($fileId) {
-    $previewPath = $this->getPreviewPath($fileId);
-    if ($previewPath && file_exists($previewPath)) {
-        $timestamp = filemtime($previewPath);
-        return "preview.php?id={$fileId}&v={$timestamp}";
-    }
-    return null;
-}
+### 数据库文件位置
 
 ```
-
-#### 缩略图逻辑优化 (2025-10-16)
-
-> 📋 **更新说明**: 移除自定义缩略图生成逻辑，完全遵循Billfish原生规则
-
-**问题背景**:
-- 新增 JPG 图片在纯图片文件夹中不显示缩略图
-- 早期实现通过动态生成缩略图解决，但与 Billfish 设计理念冲突
-
-**核心发现**:
-- `thumb_tid = 60`: Billfish已生成缩略图，使用标准缩略图路径
-- `thumb_tid = 0`: Billfish未生成缩略图，直接使用原�?
-- `thumb_tid = 60 + image_tid = 60`: 视频文件缩略�?
-
-**修改内容**:
-
-**1. `preview.php` 优化**:
-```php
-// 移除 generateThumbnail() 函数
-// 移除动态生成缩略图逻辑
-
-// 新逻辑: 基于 thumb_tid 决定显示策略
-$fileQuery = "
-    SELECT f.name, f.pid, m.thumb_tid
-    FROM bf_file f
-    LEFT JOIN bf_material_v2 m ON f.id = m.file_id
-    WHERE f.id = ? AND f.is_hide = 0
-";
-
-if ($fileInfo['thumb_tid'] == 60) {
-    // 使用Billfish生成的缩略图
-    $hexFolder = sprintf("%02x", $fileId % 256);
-    $basePath = BILLFISH_PATH . '/.bf/.preview/' . $hexFolder . '/' . $fileId;
-    // 优先�? .cover.png > .cover.webp > .small.webp > .hd.webp
-} else {
-    // thumb_tid = 0，直接使用原�?
-    // 构建完整文件路径...
-}
+{资源库路径}/.BillfishDatabase/{library_id}.bf3
 ```
 
-**2. `BillfishManagerV3.php` 优化**:
-```php
-private function getPreviewPath($fileId) {
-    // 获取文件信息和缩略图状�?
-    $fileQuery = "
-        SELECT f.name, f.pid, m.thumb_tid
-        FROM bf_file f
-        LEFT JOIN bf_material_v2 m ON f.id = m.file_id
-        WHERE f.id = ? AND f.is_hide = 0
-    ";
-    
-    if ($fileInfo['thumb_tid'] == 60) {
-        // 返回缩略图路径（如果存在�?
-        $hexFolder = sprintf("%02x", $fileId % 256);
-        $previewDir = $this->billfishPath . "/.bf/.preview/{$hexFolder}/";
-        // 检查各优先级缩略图文件...
-    } else {
-        // 返回原图路径
-        $folderPath = $this->buildFullFolderPath($fileInfo['pid']);
-        $originalPath = $this->billfishPath;
-        if (!empty($folderPath)) {
-            $originalPath .= '/' . $folderPath;
-        }
-        $originalPath .= '/' . $fileInfo['name'];
-        return $originalPath;
-    }
-}
+示例：
+```
+D:/demo-billfish/.BillfishDatabase/1a2b3c4d.bf3
 ```
 
-**最佳实�?*:
-- �?**不生成缩略图**: 避免干扰Billfish数据库和文件系统
-- �?**遵循原生逻辑**: 完全兼容Billfish的缩略图生成规则
-- �?**性能优化**: 直接使用现有文件，无需额外处理
-- �?**维护简�?*: 代码逻辑清晰，易于理解和维护
+## 主要数据表
 
-**测试验证**:
-- 视频文件 (thumb_tid=60): 正确显示缩略�?
-- 图片文件: 根据thumb_tid自动选择显示策略
-- 无语法错误，逻辑验证通过
+### 1. bf_material_v2（素材主表）
 
-------
+存储所有素材文件的元数据。
 
-
-
-## 常用数据处理## 常用数据处理
-
-
-
-### 时间格式�?## 时间格式�?
-
-```php```php
-
-function formatTime($timestamp) {function formatTime($timestamp) {
-
-    return date('Y-m-d H:i:s', $timestamp);    return date('Y-m-d H:i:s', $timestamp);
-
-}}
-
-``````
-
-
-
-### 文件大小格式�?## 文件大小格式�?
-
-```php```php
-
-function formatFileSize($bytes) {function formatFileSize($bytes) {
-
-    $units = ['B', 'KB', 'MB', 'GB'];    $units = ['B', 'KB', 'MB', 'GB'];
-
-    $bytes = max($bytes, 0);    $bytes = max($bytes, 0);
-
-    $pow = floor(($bytes ? log($bytes) : 0) / log(1024));    $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
-
-    $pow = min($pow, count($units) - 1);    $pow = min($pow, count($units) - 1);
-
-    $bytes /= pow(1024, $pow);    $bytes /= pow(1024, $pow);
-
-    return round($bytes, 2) . ' ' . $units[$pow];    return round($bytes, 2) . ' ' . $units[$pow];
-
-}}
-
-``````
-
-
-
-### 颜色数据解析### 颜色数据解析
-
-```php```php
-
-function parseColors($colorsJson) {function parseColors($colorsJson) {
-
-    if (empty($colorsJson)) return [];    if (empty($colorsJson)) return [];
-
-    $colors = json_decode($colorsJson, true);    $colors = json_decode($colorsJson, true);
-
-    return is_array($colors) ? $colors : [];    return is_array($colors) ? $colors : [];
-
-}}
-
-``````
-
-
-
-------
-
-
-
-## 核心表说�?# 核心表说�?
-
-
-
-| 表名 | 用�?| 关键字段 || 表名 | 用�?| 关键字段 |
-
-|------|------|----------||------|------|----------|
-
-| `bf_file` | 文件基础信息 | id, name, file_size, ctime || `bf_file` | 文件基础信息 | id, name, file_size, ctime |
-
-| `bf_tag_v2` | 标签数据 | id, name, color || `bf_tag_v2` | 标签数据 | id, name, color |
-
-| `bf_tag_join_file` | 标签关联 | tag_id, file_id || `bf_tag_join_file` | 标签关联 | tag_id, file_id |
-
-| `bf_material_userdata` | 用户扩展数据 | origin, colors, cover_tid || `bf_material_userdata` | 用户扩展数据 | origin, colors, cover_tid |
-
-| `bf_folder` | 文件夹结�?| id, name, pid || `bf_folder` | 文件夹结�?| id, name, pid |
-
-
-
-------
-
-
-
-## 重要提醒## 重要提醒
-
-
-
-### ⚠️ 关键发现### ⚠️ 关键发现
-
-1. **标签�?*: 使用`bf_tag_v2`而非空的`bf_tag`�?. **标签�?*: 使用`bf_tag_v2`而非空的`bf_tag`�?
-
-2. **自定义缩略图**: 检查`.cover.png`/.cover.webp文件2. **自定义缩略图**: 检查`.cover.png`/.cover.webp文件
-
-3. **数据分离**: 基础信息在`bf_file`，用户数据在`bf_material_userdata`3. **数据分离**: 基础信息在`bf_file`，用户数据在`bf_material_userdata`
-
-
-
-### 💡 最佳实�?## 💡 最佳实�?
-
-- 始终过滤隐藏文件: `WHERE f.is_hide = 0`- 始终过滤隐藏文件: `WHERE f.is_hide = 0`
-
-- 使用只读模式打开数据�? 使用只读模式打开数据�?
-
-- 预览图URL添加时间戳防缓存- 预览图URL添加时间戳防缓存
-
-- 标签过滤用INNER JOIN提升性能- 标签过滤用INNER JOIN提升性能
-
-
-
-------
-
-
-
-## 完整示例## 完整示例
-
-
-
-```php```php
-
-// 获取带标签和预览图的文件列表// 获取带标签和预览图的文件列表
-
-public function getFilesWithPreview($category = null, $tagId = null, $limit = 20) {public function getFilesWithPreview($category = null, $tagId = null, $limit = 20) {
-
-    $whereConditions = ["f.is_hide = 0"];    $whereConditions = ["f.is_hide = 0"];
-
-    $joins = [    $joins = [
-
-        "LEFT JOIN bf_folder fo ON f.pid = fo.id",        "LEFT JOIN bf_folder fo ON f.pid = fo.id",
-
-        "LEFT JOIN bf_type t ON f.tid = t.tid",        "LEFT JOIN bf_type t ON f.tid = t.tid",
-
-        "LEFT JOIN bf_material_userdata mud ON f.id = mud.id"        "LEFT JOIN bf_material_userdata mud ON f.id = mud.id"
-
-    ];    ];
-
-        
-
-    if ($category) {    if ($category) {
-
-        $whereConditions[] = "t.name = ?";        $whereConditions[] = "t.name = ?";
-
-    }    }
-
-        
-
-    if ($tagId) {    if ($tagId) {
-
-        $joins[] = "INNER JOIN bf_tag_join_file tjf ON f.id = tjf.file_id";        $joins[] = "INNER JOIN bf_tag_join_file tjf ON f.id = tjf.file_id";
-
-        $whereConditions[] = "tjf.tag_id = ?";        $whereConditions[] = "tjf.tag_id = ?";
-
-    }    }
-
-        
-
-    $query = "    $query = "
-
-        SELECT         SELECT 
-
-            f.id, f.name, f.file_size, f.ctime,            f.id, f.name, f.file_size, f.ctime,
-
-            fo.name as folder_name,            fo.name as folder_name,
-
-            t.name as type_name,            t.name as type_name,
-
-            mud.colors, mud.origin            mud.colors, mud.origin
-
-        FROM bf_file f        FROM bf_file f
-
-        " . implode(" ", $joins) . "        " . implode(" ", $joins) . "
-
-        WHERE " . implode(" AND ", $whereConditions) . "        WHERE " . implode(" AND ", $whereConditions) . "
-
-        ORDER BY f.ctime DESC        ORDER BY f.ctime DESC
-
-        LIMIT ?        LIMIT ?
-
-    ";    ";
-
-        
-
-    $stmt = $this->db->prepare($query);    $stmt = $this->db->prepare($query);
-
-    $paramIndex = 1;    $paramIndex = 1;
-
-        
-
-    if ($category) {    if ($category) {
-
-        $stmt->bindValue($paramIndex++, $category, SQLITE3_TEXT);        $stmt->bindValue($paramIndex++, $category, SQLITE3_TEXT);
-
-    }    }
-
-    if ($tagId) {    if ($tagId) {
-
-        $stmt->bindValue($paramIndex++, $tagId, SQLITE3_INTEGER);        $stmt->bindValue($paramIndex++, $tagId, SQLITE3_INTEGER);
-
-    }    }
-
-    $stmt->bindValue($paramIndex, $limit, SQLITE3_INTEGER);    $stmt->bindValue($paramIndex, $limit, SQLITE3_INTEGER);
-
-        
-
-    $results = [];    $results = [];
-
-    $result = $stmt->execute();    $result = $stmt->execute();
-
-    while ($row = $result->fetchArray(SQLITE3_ASSOC)) {    while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
-
-        $row['preview_url'] = $this->getPreviewUrl($row['id']);        $row['preview_url'] = $this->getPreviewUrl($row['id']);
-
-        $row['color_array'] = $this->parseColors($row['colors']);        $row['color_array'] = $this->parseColors($row['colors']);
-
-        $row['formatted_size'] = $this->formatFileSize($row['file_size']);        $row['formatted_size'] = $this->formatFileSize($row['file_size']);
-
-        $row['formatted_time'] = $this->formatTime($row['ctime']);        $row['formatted_time'] = $this->formatTime($row['ctime']);
-
-        $results[] = $row;        $results[] = $row;
-
-    }    }
-
-        
-
-    return $results;    return $results;
-
-}}
-
-``````
-
-
-
-此示例展示了完整的文件查询，包含标签过滤、预览图处理和数据格式化。此示例展示了完整的文件查询，包含标签过滤、预览图处理和数据格式化�?
-{file_id}.hd.webp     - 高清预览�?备�?
-```
-
-### 优势分析
-1. **性能优化**: 避免单目录文件过�?
-2. **均匀分布**: 256个目录平均分配文�?
-3. **快速定�?*: O(1)时间复杂�?
-4. **可扩展�?*: 支持无限file_id增长
-
----
-
-## 调用方法
-
-### 1. 数据库连�?
-
-```php
-<?php
-class BillfishManager {
-    private $db;
-    
-    public function __construct($billfishPath) {
-        $dbPath = $billfishPath . '/.bf/billfish.db';
-        $this->db = new SQLite3($dbPath, SQLITE3_OPEN_READONLY);
-    }
-}
-```
-
-### 2. 基础查询
-
-```php
-// 获取文件列表(正确方式)
-public function getAllFiles($category = null) {
-    $query = "
-        SELECT 
-            f.id,
-            f.name,
-            f.file_size,
-            f.ctime,
-            t.name as type_name
-        FROM bf_file f
-        LEFT JOIN bf_type t ON f.tid = t.tid
-        WHERE f.is_hide = 0
-    ";
-    
-    if ($category) {
-        $query .= " AND t.name = ?";
-    }
-    
-    $query .= " ORDER BY f.ctime DESC";
-    
-    $stmt = $this->db->prepare($query);
-    if ($category) {
-        $stmt->bindValue(1, $category, SQLITE3_TEXT);
-    }
-    
-    return $stmt->execute();
-}
-```
-
-### 3. 预览图URL生成
-
-```php
-public function getPreviewUrl($fileId) {
-    // 方法1: 直接返回preview.php处理
-    return "preview.php?id=" . $fileId;
-}
-
-// preview.php实现
-public function getPreviewImagePath($fileId) {
-    $hexFolder = sprintf("%02x", $fileId % 256);
-    $basePath = $this->billfishPath . "/.bf/.preview/{$hexFolder}/{$fileId}";
-    
-    // 优先使用小图
-    if (file_exists($basePath . '.small.webp')) {
-        return $basePath . '.small.webp';
-    }
-    
-    // 备选高清图
-    if (file_exists($basePath . '.hd.webp')) {
-        return $basePath . '.hd.webp';
-    }
-    
-    return null;
-}
-```
-
-### 4. 高级筛�?
-
-```php
-public function getFilesWithFilters($filters = []) {
-    $query = "
-        SELECT DISTINCT
-            f.id,
-            f.name, 
-            f.file_size,
-            f.ctime,
-            t.name as type_name
-        FROM bf_file f
-        LEFT JOIN bf_type t ON f.tid = t.tid
-        WHERE f.is_hide = 0
-    ";
-    
-    $conditions = [];
-    
-    // 分类筛�?
-    if (!empty($filters['category'])) {
-        $conditions[] = "t.name = '" . $this->db->escapeString($filters['category']) . "'";
-    }
-    
-    // 文件夹筛�?
-    if (!empty($filters['folder'])) {
-        $conditions[] = "f.pid = " . intval($filters['folder']);
-    }
-    
-    // 标签筛�?
-    if (!empty($filters['tag'])) {
-        $query .= " INNER JOIN bf_tag_join_file tjf ON f.id = tjf.file_id";
-        $conditions[] = "tjf.tag_id = " . intval($filters['tag']);
-    }
-    
-    // 文件大小筛�? 
-    if (!empty($filters['size_min'])) {
-        $conditions[] = "f.file_size >= " . intval($filters['size_min']);
-    }
-    if (!empty($filters['size_max'])) {
-        $conditions[] = "f.file_size <= " . intval($filters['size_max']);
-    }
-    
-    if (!empty($conditions)) {
-        $query .= " AND " . implode(" AND ", $conditions);
-    }
-    
-    $query .= " ORDER BY f.ctime DESC";
-    
-    return $this->db->query($query);
-}
-```
-
----
-
-## 最佳实�?
-
-### 1. SQL查询优化
+#### 表结构
 
 ```sql
--- �?推荐：直接查询主�?
-SELECT f.id, f.name, f.file_size FROM bf_file f WHERE f.is_hide = 0;
-
--- �?避免：依赖material_v2的不存在字段
-SELECT m.name, m.size FROM bf_material_v2 m;  -- 字段不存�?
-
--- �?正确关联查询
-SELECT f.*, m.w, m.h 
-FROM bf_file f 
-LEFT JOIN bf_material_v2 m ON f.id = m.file_id;
+CREATE TABLE bf_material_v2 (
+    id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL,              -- 文件名
+    path TEXT NOT NULL,              -- 相对路径
+    folderId INTEGER,                -- 所属文件夹ID
+    previewTid INTEGER,              -- 预览图ID
+    width INTEGER,                   -- 宽度
+    height INTEGER,                  -- 高度
+    size INTEGER,                    -- 文件大小（字节）
+    extension TEXT,                  -- 文件扩展名
+    type INTEGER,                    -- 文件类型
+    score INTEGER DEFAULT 0,         -- 评分(0-5)
+    note TEXT,                       -- 备注
+    isDeleted INTEGER DEFAULT 0,     -- 是否删除
+    createTime INTEGER,              -- 创建时间（时间戳）
+    modifyTime INTEGER,              -- 修改时间
+    -- 更多字段...
+);
 ```
 
-### 2. 预览图处�?
+#### 常用查询
+
+**获取所有未删除的素材**：
+```sql
+SELECT * FROM bf_material_v2 
+WHERE isDeleted = 0 
+ORDER BY createTime DESC;
+```
+
+**按文件夹查询**：
+```sql
+SELECT * FROM bf_material_v2 
+WHERE folderId = 123 AND isDeleted = 0;
+```
+
+**搜索文件名**：
+```sql
+SELECT * FROM bf_material_v2 
+WHERE name LIKE '%关键词%' AND isDeleted = 0 
+LIMIT 20;
+```
+
+**按评分筛选**：
+```sql
+SELECT * FROM bf_material_v2 
+WHERE score >= 3 AND isDeleted = 0;
+```
+
+### 2. bf_folder（文件夹表）
+
+存储文件夹结构。
+
+#### 表结构
+
+```sql
+CREATE TABLE bf_folder (
+    id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL,              -- 文件夹名称
+    parentId INTEGER,                -- 父文件夹ID
+    path TEXT,                       -- 路径
+    materialCount INTEGER DEFAULT 0, -- 素材数量
+    isDeleted INTEGER DEFAULT 0,
+    createTime INTEGER,
+    modifyTime INTEGER
+);
+```
+
+#### 常用查询
+
+**获取根文件夹**：
+```sql
+SELECT * FROM bf_folder 
+WHERE parentId = 0 AND isDeleted = 0;
+```
+
+**获取子文件夹**：
+```sql
+SELECT * FROM bf_folder 
+WHERE parentId = 123 AND isDeleted = 0;
+```
+
+**获取文件夹路径**：
+```sql
+WITH RECURSIVE folder_path AS (
+    SELECT id, name, parentId, name as path
+    FROM bf_folder WHERE id = 123
+    UNION ALL
+    SELECT f.id, f.name, f.parentId, f.name || '/' || fp.path
+    FROM bf_folder f
+    JOIN folder_path fp ON f.id = fp.parentId
+)
+SELECT path FROM folder_path WHERE parentId = 0;
+```
+
+### 3. bf_tag（标签表）
+
+存储标签信息。
+
+#### 表结构
+
+```sql
+CREATE TABLE bf_tag (
+    id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL,              -- 标签名称
+    color TEXT,                      -- 标签颜色
+    isDeleted INTEGER DEFAULT 0,
+    createTime INTEGER
+);
+```
+
+### 4. bf_material_tag（素材标签关联表）
+
+关联素材和标签的多对多关系。
+
+#### 表结构
+
+```sql
+CREATE TABLE bf_material_tag (
+    materialId INTEGER,              -- 素材ID
+    tagId INTEGER,                   -- 标签ID
+    createTime INTEGER,
+    PRIMARY KEY (materialId, tagId)
+);
+```
+
+#### 常用查询
+
+**获取素材的所有标签**：
+```sql
+SELECT t.* 
+FROM bf_tag t
+JOIN bf_material_tag mt ON t.id = mt.tagId
+WHERE mt.materialId = 123;
+```
+
+**获取带有特定标签的素材**：
+```sql
+SELECT m.* 
+FROM bf_material_v2 m
+JOIN bf_material_tag mt ON m.id = mt.materialId
+WHERE mt.tagId = 456 AND m.isDeleted = 0;
+```
+
+### 5. bf_collection（收藏集表）
+
+存储收藏集信息。
+
+```sql
+CREATE TABLE bf_collection (
+    id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL,
+    description TEXT,
+    coverMaterialId INTEGER,
+    isDeleted INTEGER DEFAULT 0,
+    createTime INTEGER
+);
+```
+
+## 关键字段说明
+
+### previewTid（预览图ID）
+
+这是最关键的字段之一，用于定位预览图文件。
+
+**预览图路径计算**：
+```
+hex_folder = hex(previewTid)的后两位
+preview_path = .preview/{hex_folder}/{previewTid}.small.webp
+```
+
+**示例**：
+```
+previewTid = 10
+hex(10) = "0xa"
+hex_folder = "0a"
+preview_path = ".preview/0a/10.small.webp"
+```
+
+### 时间戳字段
+
+Billfish 使用毫秒级时间戳（13位）：
 
 ```php
-// �?健壮的预览图获取
-function getPreviewPath($fileId) {
-    $hexFolder = sprintf("%02x", $fileId % 256);
-    $formats = ['.small.webp', '.hd.webp'];
-    
-    foreach ($formats as $format) {
-        $path = $this->basePath . "/.bf/.preview/{$hexFolder}/{$fileId}{$format}";
-        if (file_exists($path)) {
-            return $path;
-        }
-    }
-    
-    return $this->getDefaultPreview(); // 默认图片
-}
+// 转换为可读格式
+$createTime = 1704067200000;
+$dateTime = date('Y-m-d H:i:s', $createTime / 1000);
 ```
 
-### 3. 错误处理
+### 文件类型（type）
 
-```php
-try {
-    $db = new SQLite3($dbPath, SQLITE3_OPEN_READONLY);
-} catch (Exception $e) {
-    error_log("Billfish数据库连接失�? " . $e->getMessage());
-    throw new Exception("无法访问Billfish数据�?);
-}
+| 值 | 类型 |
+|----|------|
+| 1 | 图片 |
+| 2 | 视频 |
+| 3 | 音频 |
+| 4 | 文档 |
+| 5 | 其他 |
+
+## 复杂查询示例
+
+### 1. 获取带标签和文件夹信息的素材
+
+```sql
+SELECT 
+    m.*,
+    f.name as folder_name,
+    GROUP_CONCAT(t.name) as tags
+FROM bf_material_v2 m
+LEFT JOIN bf_folder f ON m.folderId = f.id
+LEFT JOIN bf_material_tag mt ON m.id = mt.materialId
+LEFT JOIN bf_tag t ON mt.tagId = t.id
+WHERE m.isDeleted = 0
+GROUP BY m.id
+LIMIT 20;
 ```
 
-### 4. 缓存策略
+### 2. 统计每个文件夹的素材数量
 
-```php
-// 预览图设置合适缓�?
-header('Content-Type: image/webp');
-header('Cache-Control: public, max-age=86400'); // 1�?
-header('Expires: ' . gmdate('D, d M Y H:i:s', time() + 86400) . ' GMT');
+```sql
+SELECT 
+    f.id,
+    f.name,
+    COUNT(m.id) as material_count
+FROM bf_folder f
+LEFT JOIN bf_material_v2 m ON f.id = m.folderId AND m.isDeleted = 0
+WHERE f.isDeleted = 0
+GROUP BY f.id;
 ```
 
----
+### 3. 查找最近添加的素材
 
-## 路径构建最佳实�?
+```sql
+SELECT * FROM bf_material_v2
+WHERE isDeleted = 0
+ORDER BY createTime DESC
+LIMIT 10;
+```
 
-### 关键原则：基础路径的正确使�?
+### 4. 查找高评分素材
 
-在BillfishManagerV3类中�?*必须严格区分**两个路径概念�?
+```sql
+SELECT * FROM bf_material_v2
+WHERE score >= 4 AND isDeleted = 0
+ORDER BY score DESC, createTime DESC;
+```
+
+## PHP 实现示例
+
+### BillfishManagerV3 核心方法
 
 ```php
 class BillfishManagerV3 {
-    private $billfishPath;  // 基础目录路径�?path/to/billfish
-    private $dbPath;        // 数据库文件路径：/path/to/billfish/.bf/billfish.db
+    private $db;
     
     public function __construct($billfishPath) {
-        $this->billfishPath = rtrim($billfishPath, '/');
-        $this->dbPath = $this->billfishPath . '/.bf/billfish.db';
+        $dbFile = $this->findDatabase($billfishPath);
+        $this->db = new PDO("sqlite:$dbFile");
+        $this->db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    }
+    
+    // 获取文件列表
+    public function getFiles($options = []) {
+        $sql = "SELECT * FROM bf_material_v2 WHERE isDeleted = 0";
+        
+        // 添加文件夹过滤
+        if (isset($options['folderId'])) {
+            $sql .= " AND folderId = :folderId";
+        }
+        
+        // 添加搜索
+        if (isset($options['search'])) {
+            $sql .= " AND name LIKE :search";
+        }
+        
+        // 排序
+        $sql .= " ORDER BY createTime DESC";
+        
+        // 分页
+        $sql .= " LIMIT :limit OFFSET :offset";
+        
+        $stmt = $this->db->prepare($sql);
+        // 绑定参数...
+        $stmt->execute();
+        
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    
+    // 获取单个文件
+    public function getFileById($id) {
+        $stmt = $this->db->prepare(
+            "SELECT * FROM bf_material_v2 WHERE id = :id AND isDeleted = 0"
+        );
+        $stmt->execute(['id' => $id]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+    
+    // 搜索文件
+    public function searchFiles($query) {
+        $stmt = $this->db->prepare(
+            "SELECT * FROM bf_material_v2 
+             WHERE name LIKE :query AND isDeleted = 0 
+             LIMIT 50"
+        );
+        $stmt->execute(['query' => "%$query%"]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }
 ```
 
-### ⚠️ 常见致命错误
+## 性能优化建议
 
-```php
-// �?错误：使用数据库文件路径构建文件路径
-$fullPath = $this->dbPath . '/' . $folder_name . '/' . $file_name;
-// 结果�?path/to/billfish/.bf/billfish.db/storyboard/video.mp4 (错误!)
-
-// �?正确：使用基础路径构建文件路径  
-$fullPath = $this->billfishPath . '/' . $folder_name . '/' . $file_name;
-// 结果�?path/to/billfish/storyboard/video.mp4 (正确!)
-```
-
-### 实际案例：路径修�?
-
-**问题现象**�?
-- 视频无法播放
-- 预览图显�?04
-- `has_preview`总是FALSE
-
-**根本原因**�?
-```php
-// BillfishManagerV3.php �?85�?修复�?
-$fullPath = $this->dbPath . '/' . $folder_name . '/' . $file_name;
-//          ^^^^^^^^^^^^^ 错误！这是数据库文件路径
-
-// 修复�?
-$fullPath = $this->billfishPath . '/' . $folder_name . '/' . $file_name; 
-//          ^^^^^^^^^^^^^^^^^ 正确！这是基础目录路径
-```
-
-**修复验证**�?
-```bash
-# 修复前（错误路径�?
-d:\VS CODE\rzxme-billfish\publish\assets\viedeos\rzxme-billfish\.bf\billfish.db\storyboard\0XS72ZySvSR5TfeM.mp4
-
-# 修复后（正确路径�? 
-d:\VS CODE\rzxme-billfish\publish\assets\viedeos\rzxme-billfish\storyboard\0XS72ZySvSR5TfeM.mp4
-```
-
-### 预览图路径修�?
-
-同样的错误也影响预览图路径：
-
-```php
-// getPreviewPath方法修复
-public function getPreviewPath($fileId) {
-    $hexFolder = sprintf("%02x", $fileId % 256);
-    
-    // �?修复�?
-    $previewPath = $this->dbPath . "/.preview/{$hexFolder}/{$fileId}.small.webp";
-    
-    // �?修复�?
-    $previewPath = $this->billfishPath . "/.bf/.preview/{$hexFolder}/{$fileId}.small.webp";
-    
-    return file_exists($previewPath) ? $previewPath : null;
-}
-```
-
-### 诊断方法
-
-创建临时诊断脚本验证路径构建�?
-
-```php
-// data-check.php
-$manager = new BillfishManagerV3(BILLFISH_PATH);
-$file = $manager->getFileById(2);
-
-// 检查关键字�?
-echo "full_path: " . $file['full_path'] . "\n";
-echo "preview_path: " . $file['preview_path'] . "\n"; 
-echo "has_preview: " . ($file['has_preview'] ? 'TRUE' : 'FALSE') . "\n";
-
-// 验证文件存在�?
-echo "Video exists: " . (file_exists($file['full_path']) ? 'YES' : 'NO') . "\n";
-echo "Preview exists: " . (file_exists($file['preview_path']) ? 'YES' : 'NO') . "\n";
-```
-
-### 教训总结
-
-1. **变量命名的重要�?*：`billfishPath` vs `dbPath` 必须准确命名避免混淆
-2. **路径概念清晰**：基础目录 �?数据库文件，用途完全不�?
-3. **测试驱动修复**：先写诊断脚本，后验证修复效�?
-4. **全链路验�?*：不仅要检查代码逻辑，还要验证文件系统实际存在�?
-
----
-
-## 常见问题
-
-### Q1: 为什么查询file_size返回NULL�?
-**A**: 确保查询`bf_file.file_size`而不是`bf_material_v2.size`(不存�?�?
-
-### Q2: 预览图显�?04错误�?
-**A**: 检查路径计算是否使用`file_id % 256`�?
-```php
-// �?错误
-$folder = sprintf("%02x", $fileId);
-
-// �?正确  
-$folder = sprintf("%02x", $fileId % 256);
-```
-
-### Q3: 大文件ID(>256)的预览图找不到？
-**A**: 必须使用取模运算�?
-```bash
-file_id=258 �?258%256=2 �?02/258.small.webp �?
-file_id=258 �?hex(258)=102 �?102/258.small.webp �?(目录不存�?
-```
-
-### Q4: thumb_tid和image_tid的区别？
-**A**: 两者通常相同，都指向同一预览图，可优先使用thumb_tid�?
-
-### Q5: 为什么所有文件的thumb_tid都相同？
-**A**: 可能视频文件还未生成独立缩略图，暂时使用默认缩略图。需要在Billfish中重新生成�?
-
-### Q6: 视频卡片点击跳转到browse.php而不是view.php�?
-**A**: 检查BillfishManagerV3是否实现了`getFileById()`方法，view.php依赖此方法获取文件信息�?
-
-### Q7: view.php页面出现大量PHP错误�?
-**A**: 通常是数据库字段映射问题�?
-- `modified` �?`ctime` 
-- `size` �?`file_size`
-- `note` �?`annotation`
-
-### Q8: 明明文件存在但路径显示错误？
-**A**: 检查基础路径配置，确保使用`$billfishPath`而不是`$dbPath`构建文件路径�?
-
----
-
-## 调试技�?
-
-### 路径问题诊断
-
-```php
-// 快速诊断脚�?
-function diagnosePathIssue($fileId) {
-    $manager = new BillfishManagerV3(BILLFISH_PATH);
-    $file = $manager->getFileById($fileId);
-    
-    echo "=== 路径诊断 ===\n";
-    echo "Expected pattern: /base/folder/file.ext\n";
-    echo "Actual full_path: " . $file['full_path'] . "\n";
-    echo "Contains '.db' in path: " . (strpos($file['full_path'], '.db') !== false ? 'YES (错误!)' : 'NO (正确)') . "\n";
-    echo "File exists: " . (file_exists($file['full_path']) ? 'YES' : 'NO') . "\n";
-    
-    if (isset($file['preview_path'])) {
-        echo "\n=== 预览图诊�?===\n";
-        echo "Preview path: " . $file['preview_path'] . "\n";
-        echo "Preview exists: " . (file_exists($file['preview_path']) ? 'YES' : 'NO') . "\n";
-        echo "Has preview: " . ($file['has_preview'] ? 'TRUE' : 'FALSE') . "\n";
-    }
-}
-```
-
-### 数据库字段映射检�?
+### 1. 使用索引
 
 ```sql
--- 检查表结构
-.schema bf_file
-.schema bf_material_v2
-
--- 验证字段存在�?
-SELECT name FROM pragma_table_info('bf_file') WHERE name IN ('file_size', 'ctime', 'mtime');
+-- Billfish 已创建的索引
+CREATE INDEX idx_material_folder ON bf_material_v2(folderId);
+CREATE INDEX idx_material_deleted ON bf_material_v2(isDeleted);
+CREATE INDEX idx_folder_parent ON bf_folder(parentId);
 ```
 
-### 预览图批量检�?
+### 2. 限制查询结果
+
+```sql
+-- 始终使用 LIMIT
+SELECT * FROM bf_material_v2 WHERE isDeleted = 0 LIMIT 100;
+```
+
+### 3. 使用预处理语句
 
 ```php
-function checkPreviewHealth($limit = 10) {
-    $manager = new BillfishManagerV3(BILLFISH_PATH);
-    $stmt = $manager->db->prepare("SELECT id FROM bf_file LIMIT ?");
-    $stmt->bindValue(1, $limit, SQLITE3_INTEGER);
-    $results = $stmt->execute();
-    
-    while ($row = $results->fetchArray()) {
-        $file = $manager->getFileById($row['id']);
-        echo "ID {$row['id']}: " . ($file['has_preview'] ? '�? : '�?) . "\n";
-    }
-}
+// 好的做法
+$stmt = $db->prepare("SELECT * FROM bf_material_v2 WHERE id = :id");
+$stmt->execute(['id' => $id]);
+
+// 避免
+$result = $db->query("SELECT * FROM bf_material_v2 WHERE id = $id");
 ```
 
+### 4. 只读模式
+
+```php
+$db = new PDO("sqlite:$dbFile", null, null, [
+    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+    PDO::SQLITE_ATTR_OPEN_FLAGS => PDO::SQLITE_OPEN_READONLY
+]);
+```
+
+## 注意事项
+
+1. **只读访问**：建议以只读模式访问数据库
+2. **不要修改**：不要修改 Billfish 数据库内容
+3. **并发访问**：注意数据库锁定问题
+4. **备份**：定期备份数据库文件
+5. **版本兼容**：不同 Billfish 版本的数据库结构可能不同
+
+## 调试工具
+
+### SQLite 命令行
+
+```bash
+# 打开数据库
+sqlite3 /path/to/database.bf3
+
+# 查看表结构
+.schema bf_material_v2
+
+# 查看所有表
+.tables
+
+# 导出数据
+.output dump.sql
+.dump bf_material_v2
+```
+
+### DB Browser for SQLite
+
+推荐使用 [DB Browser for SQLite](https://sqlitebrowser.org/) 可视化工具查看和分析数据库。
+
+## 相关文档
+
+- [SQLite 使用说明](sqlite-usage-guide.md)
+- [开发指南](README.md)
+- [系统架构](system-summary.md)
+
 ---
 
-## 版本历史
-
-- **v1.0** (2025-10-15): 初始版本，总结数据库结构和预览图机�?
-- **v1.1** (2025-10-15): 添加高级筛选方法和最佳实�? 
-- **v1.2** (2025-10-15): 添加路径构建最佳实践，基于v0.1.2分支的重大bug修复经验
-- **v1.3** (2025-10-15): 添加调试技巧和更多常见问题解答
-- **v1.4** (2025-10-16): 缩略图逻辑优化，移除自定义缩略图生成逻辑，完全遵循Billfish原生规则
-
----
-
-## 参与贡献
-
-发现问题或有改进建议，请提交Issue或Pull Request�?
-
-## 许可�?
-
-MIT License
+**警告**：仅用于读取数据，不要修改 Billfish 数据库，可能导致数据损坏或功能异常。
 

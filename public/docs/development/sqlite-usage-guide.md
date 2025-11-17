@@ -1,357 +1,360 @@
-# SQLite扩展使用说明
+# SQLite 扩展使用说明
 
-## 🤔 什么是SQLite? (给MySQL用户的对比说�?
+本文档说明如何在 PHP 中使用 SQLite3 扩展来读取 Billfish 数据库。
 
-### SQLite vs MySQL - 本质区别
+## SQLite3 扩展
 
-如果你熟悉MySQL,理解SQLite的最简单方�?
+Billfish 使用 SQLite3 数据库存储素材信息。要在 PHP 中访问这些数据，需要启用 SQLite3 扩展。
 
-| 特�?| MySQL | SQLite |
-|------|-------|--------|
-| **架构** | 客户�?服务器模�?| 嵌入式数据库 |
-| **安装** | 需要安装MySQL服务�?| 只需PHP扩展 |
-| **启动** | 需运行`mysql.exe`或服�?| 无需启动任何程序 |
-| **数据文件** | 多个文件(表空间、日志等) | **单个`.db`文件** |
-| **连接方式** | `mysql -h localhost -u root -p` | `new SQLite3('文件路径')` |
-| **网络** | TCP/IP (默认3306端口) | 本地文件访问 |
-| **权限** | 用户�?密码+权限�?| 文件系统权限 |
-| **并发** | 高并发读�?| 读多/写单 |
+## 检查扩展状态
 
-### 工作原理对比
+### 方法1：命令行检查
 
-**MySQL工作流程:**
-```
-你的PHP应用
-    �?(通过网络)
-MySQL服务器进�?(mysqld.exe)
-    �?
-数据文件 (ibdata1, *.ibd, *.frm...)
+```bash
+php -m | grep sqlite
 ```
 
-**SQLite工作流程:**
+输出应包含：
 ```
-你的PHP应用
-    �?(直接文件读写)
-billfish.db (单个文件,就像打开Excel一�?)
-```
-
-### 通俗理解
-
-- **MySQL** = 银行系统
-  - �?客户�?要去银行(服务�?办业�?
-  - 银行有保�?权限)、柜�?服务进程)
-  - 多人可以同时办业�?高并�?
-  
-- **SQLite** = 你的私人账本
-  - 账本就在你桌子上(本地文件)
-  - 想查就打开�?想改就直接改
-  - 简单快�?但一次只能一个人�?
-
-### 所需组件
-
-**MySQL需�?**
-```
-�?MySQL Server (独立程序)
-�?MySQL客户端库/PHP扩展 (mysqli/PDO)
-�?配置my.cnf
-�?启动服务
-�?创建用户和权�?
+sqlite3
+pdo_sqlite
 ```
 
-**SQLite只需�?**
-```
-�?PHP扩展 (extension=sqlite3) - 就这一�?
-�?.db数据库文�?- 普通文�?可以复制粘贴
-```
+### 方法2：PHP 代码检查
 
-### 实际例子
-
-**MySQL连接:**
 ```php
-$conn = new mysqli("localhost", "root", "password", "database");
-// 需要MySQL服务器在运行!
+<?php
+// 检查 SQLite3 扩展
+if (class_exists('SQLite3')) {
+    echo "SQLite3 扩展已安装\n";
+} else {
+    echo "SQLite3 扩展未安装\n";
+}
+
+// 检查 PDO SQLite 驱动
+if (extension_loaded('pdo_sqlite')) {
+    echo "PDO SQLite 扩展已安装\n";
+} else {
+    echo "PDO SQLite 扩展未安装\n";
+}
+?>
 ```
 
-**SQLite连接:**
-```php
-$db = new SQLite3('d:/path/to/billfish.db');
-// 文件存在就行,无需任何服务�?
+## 安装 SQLite3 扩展
+
+### Windows
+
+1. 找到 PHP 安装目录
+2. 编辑 `php.ini` 文件
+3. 找到并取消注释：
+   ```ini
+   extension=sqlite3
+   extension=pdo_sqlite
+   ```
+4. 重启 Web 服务器或 PHP-FPM
+
+### Linux (Ubuntu/Debian)
+
+```bash
+# 安装 SQLite3 扩展
+sudo apt-get install php-sqlite3
+
+# 重启服务
+sudo systemctl restart apache2
+# 或
+sudo systemctl restart php-fpm
 ```
+
+### Linux (CentOS/RHEL)
+
+```bash
+# 安装扩展
+sudo yum install php-sqlite3
+
+# 重启服务
+sudo systemctl restart httpd
+```
+
+### macOS
+
+```bash
+# 通过 Homebrew 安装
+brew install php
+# SQLite3 通常已包含
+
+# 或重新编译 PHP
+brew reinstall php --with-sqlite3
+```
+
+## 使用 SQLite3
+
+### 基本连接
+
+```php
+<?php
+try {
+    // 连接数据库
+    $db = new SQLite3('/path/to/database.bf3');
+    
+    // 查询数据
+    $results = $db->query('SELECT * FROM bf_material_v2 LIMIT 5');
+    
+    // 遍历结果
+    while ($row = $results->fetchArray(SQLITE3_ASSOC)) {
+        print_r($row);
+    }
+    
+    // 关闭连接
+    $db->close();
+    
+} catch (Exception $e) {
+    echo "错误: " . $e->getMessage();
+}
+?>
+```
+
+### 使用 PDO
+
+```php
+<?php
+try {
+    // PDO 连接
+    $pdo = new PDO('sqlite:/path/to/database.bf3');
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    
+    // 预处理查询
+    $stmt = $pdo->prepare('SELECT * FROM bf_material_v2 WHERE id = :id');
+    $stmt->execute(['id' => 123]);
+    
+    // 获取结果
+    $file = $stmt->fetch(PDO::FETCH_ASSOC);
+    print_r($file);
+    
+} catch (PDOException $e) {
+    echo "错误: " . $e->getMessage();
+}
+?>
+```
+
+## Billfish 数据库结构
+
+### 主要表
+
+#### bf_material_v2（素材表）
+
+```sql
+CREATE TABLE bf_material_v2 (
+    id INTEGER PRIMARY KEY,
+    name TEXT,
+    path TEXT,
+    folderId INTEGER,
+    previewTid INTEGER,
+    width INTEGER,
+    height INTEGER,
+    size INTEGER,
+    extension TEXT,
+    -- 更多字段...
+);
+```
+
+#### bf_folder（文件夹表）
+
+```sql
+CREATE TABLE bf_folder (
+    id INTEGER PRIMARY KEY,
+    name TEXT,
+    parentId INTEGER,
+    path TEXT
+);
+```
+
+#### bf_tag（标签表）
+
+```sql
+CREATE TABLE bf_tag (
+    id INTEGER PRIMARY KEY,
+    name TEXT,
+    color TEXT
+);
+```
+
+### 常用查询
+
+#### 获取所有素材
+
+```sql
+SELECT * FROM bf_material_v2
+WHERE isDeleted = 0
+ORDER BY createTime DESC;
+```
+
+#### 按文件夹查询
+
+```sql
+SELECT m.*
+FROM bf_material_v2 m
+JOIN bf_folder f ON m.folderId = f.id
+WHERE f.name = '我的文件夹'
+AND m.isDeleted = 0;
+```
+
+#### 搜索素材
+
+```sql
+SELECT * FROM bf_material_v2
+WHERE name LIKE '%关键词%'
+AND isDeleted = 0
+LIMIT 20;
+```
+
+#### 获取带标签的素材
+
+```sql
+SELECT m.*, GROUP_CONCAT(t.name) as tags
+FROM bf_material_v2 m
+LEFT JOIN bf_material_tag mt ON m.id = mt.materialId
+LEFT JOIN bf_tag t ON mt.tagId = t.id
+WHERE m.isDeleted = 0
+GROUP BY m.id;
+```
+
+## 性能优化
+
+### 1. 使用索引
+
+```sql
+-- 查看现有索引
+SELECT * FROM sqlite_master 
+WHERE type = 'index';
+
+-- 如需要，可创建索引（只读模式不建议）
+```
+
+### 2. 预处理语句
+
+```php
+// 好的做法：使用预处理
+$stmt = $db->prepare('SELECT * FROM bf_material_v2 WHERE id = :id');
+$stmt->bindValue(':id', $id, SQLITE3_INTEGER);
+$result = $stmt->execute();
+
+// 不好的做法：字符串拼接
+$result = $db->query("SELECT * FROM bf_material_v2 WHERE id = $id");
+```
+
+### 3. 限制结果数量
+
+```php
+// 分页查询
+$offset = ($page - 1) * $pageSize;
+$sql = "SELECT * FROM bf_material_v2 
+        WHERE isDeleted = 0 
+        LIMIT :limit OFFSET :offset";
+```
+
+### 4. 只读模式
+
+```php
+// 以只读模式打开
+$db = new SQLite3($dbPath, SQLITE3_OPEN_READONLY);
+```
+
+## 常见问题
+
+### 问题1：数据库被锁定
+
+**原因**：另一个进程（如 Billfish 客户端）正在写入数据库
+
+**解决方案**：
+```php
+// 设置超时
+$db->busyTimeout(5000); // 5秒超时
+
+// 或使用只读模式
+$db = new SQLite3($dbPath, SQLITE3_OPEN_READONLY);
+```
+
+### 问题2：中文乱码
+
+**解决方案**：
+```php
+// 设置字符集
+$db->exec('PRAGMA encoding = "UTF-8"');
+```
+
+### 问题3：权限错误
+
+**Windows**：
+- 检查文件属性
+- 赋予 IIS_IUSRS 或 Everyone 读取权限
+
+**Linux**：
+```bash
+chmod 644 /path/to/database.bf3
+chown www-data:www-data /path/to/database.bf3
+```
+
+## 安全注意事项
+
+### 1. SQL 注入防护
+
+```php
+// 永远使用预处理语句
+$stmt = $db->prepare('SELECT * FROM bf_material_v2 WHERE name LIKE :name');
+$stmt->bindValue(':name', '%' . $search . '%', SQLITE3_TEXT);
+```
+
+### 2. 只读访问
+
+```php
+// 不修改 Billfish 数据库
+$db = new SQLite3($dbPath, SQLITE3_OPEN_READONLY);
+```
+
+### 3. 错误处理
+
+```php
+try {
+    $db = new SQLite3($dbPath);
+} catch (Exception $e) {
+    // 不要暴露敏感路径
+    error_log($e->getMessage());
+    die("数据库连接失败");
+}
+```
+
+## 调试技巧
+
+### 启用详细错误
+
+```php
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+```
+
+### 查看 SQL 查询
+
+```php
+$sql = "SELECT * FROM bf_material_v2 WHERE id = :id";
+echo "执行 SQL: $sql\n";
+```
+
+### 检查数据库结构
+
+```php
+$result = $db->query("SELECT name FROM sqlite_master WHERE type='table'");
+while ($row = $result->fetchArray()) {
+    echo $row['name'] . "\n";
+}
+```
+
+## 相关文档
+
+- [SQLite 官方文档](https://www.sqlite.org/docs.html)
+- [PHP SQLite3 手册](https://www.php.net/manual/zh/book.sqlite3.php)
+- [PHP PDO 文档](https://www.php.net/manual/zh/book.pdo.php)
+- [Billfish 数据库指南](billfish-database-guide.md)
 
 ---
 
-## 📌 当前项目的SQLite使用情况
-
-### �?核心系统 **不依�?* SQLite
-
-**BillfishManagerV2.php** (核心管理�? 使用的是:
-- �?**不使�?* SQLite数据�?
-- �?使用JSON文件映射 (`database-exports/id_based_mapping.json`)
-- �?使用JSON完整信息 (`database-exports/complete_material_info.json`)
-
-**主要功能页面**完全不需要SQLite:
-- �?`index.php` - 首页
-- �?`browse.php` - 浏览文件
-- �?`view.php` - 单文件查�?
-- �?`search.php` - 搜索功能
-- �?`docs-ui.php` - 文档中心
-- �?`tools-ui.php` - 工具中心(界面)
-
-### ⚠️ 仅Web工具需要SQLite
-
-**只有3个诊�?分析工具**使用SQLite:
-1. `tools/web-ui/system-health-check.php` - 系统状态检�?
-2. `tools/web-ui/database-browser.php` - 数据库浏览器
-3. `tools/web-ui/preview-checker.php` - 预览图检查工�?
-
-**这些工具的作�?**
-- 📊 诊断和分析Billfish原始数据�?
-- 🔍 开发调试用�?
-- 🛠�?非必需功能(核心功能不依�?
-
-## 🚀 VPS部署建议
-
-### 方案1: 最小化部署 (推荐)
-
-**不启用SQLite扩展**
-```bash
-# VPS上只需�?
-- PHP 7.4+ (基础安装)
-- extension=json (通常默认启用)
-- extension=mbstring (通常默认启用)
-
-# 不需�?
-- �?extension=sqlite3
-```
-
-**优点:**
-- �?依赖最�?部署简�?
-- �?核心功能完全可用
-- �?性能更好(无SQLite开销)
-
-**缺点:**
-- ⚠️ 3个诊断工具会显示"SQLite3未启�?提示
-- ⚠️ 无法使用数据库浏览器
-
-**适用场景:**
-- 生产环境
-- 只需要浏览和查看文件
-- 不需要诊断工�?
-
-### 方案2: 完整功能部署
-
-**启用SQLite扩展**
-```bash
-# Ubuntu/Debian
-sudo apt-get install php-sqlite3
-sudo systemctl restart php-fpm
-
-# CentOS/RHEL
-sudo yum install php-sqlite3
-sudo systemctl restart php-fpm
-
-# 或修�?php.ini
-extension=sqlite3
-```
-
-**优点:**
-- �?所有功能可�?
-- �?可以使用诊断工具
-- �?开发和调试方便
-
-**缺点:**
-- ⚠️ 需要额外安装扩�?
-- ⚠️ 稍微增加服务器负�?
-
-**适用场景:**
-- 开发环�?
-- 需要完整诊断功�?
-- 需要数据库浏览�?
-
-## 🔄 未来改进方向
-
-### 当前架构 (JSON方案)
-
-**优点:**
-- �?简单高�?
-- �?无数据库依赖
-- �?易于部署
-- �?文件级缓�?
-
-**缺点:**
-- ⚠️ 搜索速度�?需遍历全部JSON)
-- ⚠️ 内存占用�?大文件时)
-- ⚠️ 无法复杂查询
-- ⚠️ 并发写入困难
-
-### 未来改进建议
-
-#### 选项1: 继续优化JSON方案 (推荐短期)
-
-**改进�?**
-```php
-// 1. 添加索引文件
-database-exports/
-├── id_based_mapping.json        # 完整映射
-├── search_index.json            # 搜索索引
-└── category_index.json          # 分类索引
-
-// 2. 分片存储
-database-exports/
-├── mapping/
-�?  ├── 0-999.json
-�?  ├── 1000-1999.json
-�?  └── ...
-
-// 3. 内存缓存
-- APCu缓存常用数据
-- Redis缓存搜索结果
-```
-
-**适用场景:**
-- 文件�?< 10000
-- 查询简�?
-- 部署简单优�?
-
-#### 选项2: 迁移到MySQL/PostgreSQL (推荐长期)
-
-**架构设计:**
-```sql
--- 核心�?
-CREATE TABLE materials (
-    id INT PRIMARY KEY,
-    name VARCHAR(500),
-    type VARCHAR(50),
-    size BIGINT,
-    category VARCHAR(100),
-    preview_path VARCHAR(500),
-    preview_url VARCHAR(500),
-    created_at DATETIME,
-    INDEX idx_category (category),
-    INDEX idx_type (type),
-    FULLTEXT idx_search (name)
-);
-
--- 标签�?
-CREATE TABLE tags (
-    material_id INT,
-    tag VARCHAR(100),
-    FOREIGN KEY (material_id) REFERENCES materials(id)
-);
-```
-
-**优点:**
-- �?搜索速度�?索引支持)
-- �?复杂查询能力
-- �?并发处理�?
-- �?数据一致性强
-
-**缺点:**
-- ⚠️ 部署复杂(需MySQL服务)
-- ⚠️ 维护成本�?
-- ⚠️ 资源占用�?
-
-**适用场景:**
-- 文件�?> 10000
-- 需要复杂搜�?
-- 多用户并发访�?
-- 生产环境
-
-#### 选项3: 使用SQLite作为Web Manager数据�?
-
-**不同于诊断工�?这是独立的数据库:**
-```php
-// 创建自己的SQLite数据�?
-public/data/webmanager.db
-
-// 不依赖Billfish的数据库
-// 从JSON导入数据到自己的数据�?
-```
-
-**优点:**
-- �?搜索性能�?
-- �?部署简�?单文�?
-- �?无需MySQL服务
-- �?并发读取�?
-
-**缺点:**
-- ⚠️ 并发写入�?
-- ⚠️ 需要数据同�?
-- ⚠️ 需要SQLite扩展
-
-**适用场景:**
-- 文件�?5000-50000
-- 单机部署
-- 读多写少
-
-## 📊 方案对比
-
-| 方案 | 部署难度 | 性能 | 适用规模 | 推荐�?|
-|------|---------|------|----------|--------|
-| JSON (当前) | �?最简�?| ⭐⭐ 中等 | < 5000文件 | ⭐⭐⭐⭐ |
-| JSON优化 | ⭐⭐ 简�?| ⭐⭐�?较好 | < 10000文件 | ⭐⭐⭐⭐�?|
-| SQLite | ⭐⭐ 简�?| ⭐⭐⭐⭐ �?| < 50000文件 | ⭐⭐⭐⭐ |
-| MySQL | ⭐⭐⭐⭐ 复杂 | ⭐⭐⭐⭐�?最�?| 无限�?| ⭐⭐�?|
-
-## 💡 当前建议
-
-### 对于VPS部署:
-
-**立即行动 (Phase 1):**
-1. �?**不启用SQLite3扩展**
-2. �?核心功能完全可用
-3. �?诊断工具显示提示信息(已实�?
-
-**短期优化 (Phase 2 - 1-2�?:**
-1. 添加搜索索引文件
-2. 实现分类快速过�?
-3. 优化JSON加载(延迟加载)
-
-**中期规划 (Phase 3 - 1-2�?:**
-1. 评估文件数量增长
-2. 如果 > 5000,考虑SQLite
-3. 如果 > 10000,考虑MySQL
-
-### 开发环境建�?
-
-**启用SQLite3扩展**用于:
-- 使用诊断工具
-- 分析Billfish数据�?
-- 开发新功能时调�?
-
-## 🔧 当前项目状态总结
-
-```
-核心系统架构:
-┌─────────────────────────────────────�?
-�? Billfish Software (外部)           �?
-�? ├── .bf/billfish.db (SQLite)      �?�?只有诊断工具访问
-�? ├── .preview/ (webp图片)          �?
-�? └── materials/ (原始文件)         �?
-└─────────────────────────────────────�?
-           �?Python导出
-┌─────────────────────────────────────�?
-�? Web Manager (核心)                 �?
-�? ├── database-exports/              �?
-�? �?  ├── id_based_mapping.json    �?�?核心依赖
-�? �?  └── complete_material_info    �?
-�? ├── includes/                     �?
-�? �?  └── BillfishManagerV2.php    �?�?使用JSON
-�? ├── index.php                    �?�?不需SQLite
-�? ├── browse.php                   �?�?不需SQLite
-�? └── tools/web-ui/                �?�?仅这里需SQLite
-�?     ├── system-health-check.php  �?  (可�?
-�?     ├── database-browser.php     �?
-�?     └── preview-checker.php      �?
-└─────────────────────────────────────�?
-```
-
-## �?结论
-
-1. **当前项目核心功能 = 不需要SQLite**
-2. **VPS部署 = 不需要安装SQLite扩展**
-3. **未来改进 = 根据规模选择技术栈**
-4. **开发调�?= 建议启用SQLite**
-
-您的项目设计得很�?已经实现了核心功能与诊断工具的解�? 🎉
-
+**注意**：建议以只读模式访问 Billfish 数据库，避免数据损坏。

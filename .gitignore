@@ -32,6 +32,7 @@ web-manager/.htaccess.backup
 # 备份文件
 *.bak
 *.backup
+public/config.php.backup.*
 
 # 可执行文件
 *.exe

@@ -1,8 +1,8 @@
 {
     "audioVolume": 0,
-    "closeLibrarType": "4",
-    "closeLibraryId": "0",
-    "cloudLocalFolderId": "1",
+    "closeLibrarType": "5",
+    "closeLibraryId": "7",
+    "cloudLocalFolderId": "-1",
     "coverPath": "",
     "createdDefaultCloudLocalFolder": true,
     "createdDefaultDownloadFolder": false,

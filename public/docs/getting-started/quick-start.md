@@ -1,106 +1,112 @@
-# Billfish Web Manager 快速入门
+# 快速开始
 
-欢迎使用 Billfish Web Manager v0.1.0!
+欢迎使用 Billfish Web Manager！本指南将帮助您快速启动和使用系统。
 
-## 什么是 Billfish Web Manager?
+## 系统要求
 
-Billfish Web Manager 是一个基于Web 的资源管理系统，专门用于浏览和管理Billfish 软件的资源库。
+- PHP 8.0 或更高版本
+- 已安装 Billfish 客户端
+- Web 服务器（Apache/Nginx）或 PHP 内置服务器
 
-### 主要功能
+## 快速启动步骤
 
-- **📁 文件浏览** - 浏览所有已导入的媒体文件
-- **🔍 智能搜索** - 根据文件名、标签、类型快速查找资源
-- **🏷️标签管理** - 查看和管理资源标签
-- **📊 数据分析** - 实时查看资源库统计信息
-- **📚 文档中心** - 完整的使用文档和开发指南
-- **🛠️工具中心** - 数据库分析和映射生成工具
+### 1. 克隆项目
 
-## 快速开始
+```bash
+git clone https://github.com/zhenxinfrozen/billfish-webui.git
+cd billfish-webui
+```
 
-### 1. 系统要求
+### 2. 配置资源库路径
 
-- PHP 7.4+
-- SQLite3 扩展
-- Web 服务器(Apache/Nginx)
-- Billfish 软件资源库
-
-### 2. 配置
-
-编辑 `config.php` 文件，设置 Billfish 资源库路径：
+编辑 `public/config.php`：
 
 ```php
-define('BILLFISH_PATH', 'D:/path/to/billfish/library');
+<?php
+define('BILLFISH_PATH', 'D:/demo-billfish');  // 修改为您的 Billfish 资源库路径
+?>
 ```
 
-### 3. 访问系统
+### 3. 启动服务
 
-在浏览器中打开:
+使用 PHP 内置服务器：
 
-```
-http://localhost/billfish-public/
-```
-
-## 核心概念
-
-### 文件映射
-
-系统使用 SQLite 数据库映射 Billfish 的资源文件：
-
-- **文件ID** - 唯一标识�?
-- **预览路径** - `.preview/{hex}/{file_id}.small.webp`
-- **原始文件** - 保存�?`materials/` 目录
-
-### 预览图生成规则
-
-```
-preview_id = file_id
-hex_folder = 后两位十六进制(file_id)
-路径 = .preview/{hex_folder}/{file_id}.small.webp
+```bash
+php -S localhost:8800 -t public
 ```
 
-**示例:**
-- file_id = 12345
-- hex = 3039 (12345的十六进制)
-- hex_folder = 39 (后两位)
-- 预览路径 = `.preview/39/12345.small.webp`
+或使用其他端口：
 
-## 常见任务
+```bash
+php -S 0.0.0.0:8000 -t public
+```
 
-### 浏览视频文件
+### 4. 访问系统
 
-1. 点击顶部菜单 "浏览"
-2. 选择文件类型过滤器
-3. 点击缩略图查看详情
+打开浏览器访问：
+- http://localhost:8800
+- http://localhost:8800/docs-ui.php （文档中心）
 
-### 搜索资源
+## 主要功能
 
-1. 点击 "搜索" 菜单
-2. 输入关键词
-3. 可以按类型、标签筛选
+### 文件浏览
+- 浏览 Billfish 资源库中的所有文件
+- 支持图片预览和视频播放
+- 按文件夹分类显示
 
-### 查看统计
+### 文档中心
+- 完整的系统文档
+- 开发指南和 API 参考
+- 故障排除指南
 
-访问 "状态" 页面查看:
-- 总文件数
-- 文件类型分布
-- 存储空间使用
-- 最近导入的文件
+### 资源库切换
+- 支持管理多个 Billfish 资源库
+- 快速切换不同的资源库配置
+
+## 常见问题
+
+### 问题1：无法访问文件
+
+**原因**：资源库路径配置错误
+
+**解决方案**：
+1. 检查 `config.php` 中的 `BILLFISH_PATH` 是否正确
+2. 确保路径使用正斜杠 `/` 或双反斜杠 `\\`
+3. 验证 Billfish 数据库文件存在：`{BILLFISH_PATH}/.BillfishDatabase/xxxxxxxx.bf3`
+
+### 问题2：预览图不显示
+
+**原因**：预览图路径映射问题
+
+**解决方案**：
+1. 检查 Billfish 资源库中是否有 `.preview` 文件夹
+2. 确保 PHP 有读取权限
+
+### 问题3：视频无法播放
+
+**原因**：浏览器不支持视频格式
+
+**解决方案**：
+1. 使用现代浏览器（Chrome、Firefox、Edge）
+2. 检查视频文件是否损坏
+3. 查看浏览器控制台错误信息
 
 ## 下一步
 
-- 📜 阅读 [用户指南](../user-guide/) 了解更多功能
-- 🔧 查看 [开发文档](../development/) 了解技术细节
-- 🔍 参考 [故障排除](../troubleshooting/) 解决问题
-
-## 版本信息
-
-- **版本:** v0.1.0
-- **发布日期:** 2025-10-15
-- **核心功能:** BillfishManagerV2, 100% 预览图映射准确率
+- 📖 [资源库配置指南](library-configuration.md)
+- 🔧 [开发文档](../development/README.md)
+- 📋 [版本说明](../release-notes/changelog.md)
+- 🔍 [故障排除](../troubleshooting/preview-missing.md)
 
 ## 技术支持
 
-- 📋 查看 [版本说明](../release-notes/v0.1.0.md)
-- 🛮 使用 [工具中心](../../tools-ui.php) 进行数据库分析
-- 📚 阅读完整 [文档](../../docs-ui.php)
+如果遇到问题，请：
+1. 查看[故障排除文档](../troubleshooting/preview-missing.md)
+2. 检查浏览器控制台错误信息
+3. 查看 PHP 错误日志
+
+---
+
+**项目地址**：https://github.com/zhenxinfrozen/billfish-webui  
+**当前版本**：v0.0.5
 
