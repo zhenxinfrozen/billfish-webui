@@ -166,86 +166,48 @@ class DatabaseHealthChecker {
     }
     
     /**
-     * 4. 检查文件可达性 (抽样检查)
+     * 4. 检查文件统计 (纯SQL统计，不做文件系统检查)
      */
     public function checkFileAccess() {
-        // 随机抽样10个文件检查
-        $query = "SELECT id, name FROM bf_file WHERE is_hide = 0 LIMIT 10";
-        $result = $this->db->query($query);
+        // 使用SQL统计，避免文件系统I/O
+        $totalFiles = $this->db->querySingle('SELECT COUNT(*) FROM bf_file WHERE is_hide = 0');
+        $totalSize = $this->db->querySingle('SELECT SUM(file_size) FROM bf_file WHERE is_hide = 0');
         
-        $totalChecked = 0;
-        $accessible = 0;
-        $inaccessible = [];
-        
-        while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
-            $filePath = $this->billfishPath . '/' . $row['name'];
-            $totalChecked++;
-            
-            if (file_exists($filePath)) {
-                $accessible++;
-            } else {
-                $inaccessible[] = $row['name'];
-            }
-        }
-        
-        $accessRate = $totalChecked > 0 ? ($accessible / $totalChecked) * 100 : 0;
-        
-        if ($accessRate >= 90) {
-            $status = 'healthy';
-            $message = "文件可达性良好 ({$accessible}/{$totalChecked})";
-        } elseif ($accessRate >= 70) {
-            $status = 'warning';
-            $message = "部分文件不可达 ({$accessible}/{$totalChecked})";
-        } else {
-            $status = 'error';
-            $message = "大量文件不可达 ({$accessible}/{$totalChecked})";
-        }
+        $sizeGB = round($totalSize / 1024 / 1024 / 1024, 2);
         
         return [
-            'status' => $status,
-            'message' => $message,
+            'status' => 'healthy',
+            'message' => "资源库统计: {$totalFiles} 个文件, {$sizeGB} GB",
             'details' => [
-                'total_checked' => $totalChecked,
-                'accessible' => $accessible,
-                'access_rate' => round($accessRate, 2),
-                'inaccessible_samples' => array_slice($inaccessible, 0, 3)
+                'total_files' => $totalFiles,
+                'total_size_gb' => $sizeGB,
+                'note' => '基于数据库统计，不检查文件系统'
             ]
         ];
     }
     
     /**
-     * 5. 检查预览图覆盖率
+     * 5. 检查预览图目录状态 (不遍历文件，仅检查目录)
      */
     public function checkPreviewCoverage() {
         $totalFiles = $this->db->querySingle('SELECT COUNT(*) FROM bf_file WHERE is_hide = 0');
         
-        // 检查.preview目录
+        // 只检查预览目录是否存在，不遍历文件
         $previewPath = $this->billfishPath . '/.bf/.preview';
-        $previewFiles = 0;
+        $previewExists = is_dir($previewPath);
         
-        if (is_dir($previewPath)) {
-            $iterator = new RecursiveIteratorIterator(
-                new RecursiveDirectoryIterator($previewPath, RecursiveDirectoryIterator::SKIP_DOTS)
-            );
-            
-            foreach ($iterator as $file) {
-                if ($file->isFile() && in_array($file->getExtension(), ['jpg', 'png', 'webp'])) {
-                    $previewFiles++;
-                }
-            }
+        // 检查预览目录大小（不遍历文件）
+        $previewDirInfo = '';
+        if ($previewExists && function_exists('disk_free_space')) {
+            $previewDirInfo = '预览目录存在';
         }
         
-        $coverage = $totalFiles > 0 ? ($previewFiles / $totalFiles) * 100 : 0;
-        
-        if ($coverage >= 95) {
+        if ($previewExists) {
             $status = 'healthy';
-            $message = "预览图覆盖率优秀 ({$coverage}%)";
-        } elseif ($coverage >= 70) {
-            $status = 'warning';
-            $message = "预览图覆盖率一般 ({$coverage}%)";
+            $message = "预览目录正常，共 {$totalFiles} 个文件记录";
         } else {
-            $status = 'error';
-            $message = "预览图覆盖率较低 ({$coverage}%)";
+            $status = 'warning';
+            $message = "预览目录不存在";
         }
         
         return [
@@ -253,8 +215,9 @@ class DatabaseHealthChecker {
             'message' => $message,
             'details' => [
                 'total_files' => $totalFiles,
-                'preview_files' => $previewFiles,
-                'coverage' => round($coverage, 2)
+                'preview_path' => $previewPath,
+                'preview_exists' => $previewExists,
+                'note' => '不统计预览图数量以避免性能问题'
             ]
         ];
     }

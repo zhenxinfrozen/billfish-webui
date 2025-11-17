@@ -17,9 +17,9 @@
           "badge": "推荐"
         },
         {
-          "file": "quick-start-v0.1.0.md",
-          "title": "v0.1.0 快速开始",
-          "description": "v0.1.0 版本快速开始指南",
+          "file": "library-configuration.md",
+          "title": "素材库配置",
+          "description": "如何配置和管理素材库",
           "order": 2
         }
       ]
@@ -47,65 +47,50 @@
       "description": "技术文档和API参考",
       "documents": [
         {
-          "file": "database-mapping.md",
-          "title": "数据库映射系统",
-          "description": "Billfish数据库结构和映射规则",
+          "file": "README.md",
+          "title": "开发概览",
+          "description": "项目技术栈和核心组件介绍",
           "order": 1
         },
         {
-          "file": "docs-tools-system-design.md",
-          "title": "文档工具系统设计",
-          "description": "文档中心和工具中心的完整设计方案",
+          "file": "system-summary.md",
+          "title": "系统架构总结",
+          "description": "完整的系统架构和数据流程",
           "order": 2
+        },
+        {
+          "file": "billfish-database-guide.md",
+          "title": "Billfish数据库完整指南",
+          "description": "深入解析数据库结构、预览图机制和开发要点",
+          "order": 3,
+          "badge": "重要"
         },
         {
           "file": "sqlite-usage-guide.md",
           "title": "SQLite扩展使用说明",
           "description": "SQLite vs MySQL对比和使用指南",
-          "order": 3,
-          "badge": "重要"
-        },
-        {
-          "file": "system-summary.md",
-          "title": "系统架构总结",
-          "description": "BillfishManagerV2核心架构和设计思路",
           "order": 4
-        },
-        {
-          "file": "cleanup-plan.md",
-          "title": "项目清理计划",
-          "description": "历史文件清理和重组方案",
-          "order": 5
-        },
-        {
-          "file": "cleanup-report.md",
-          "title": "项目清理报告",
-          "description": "实际清理过程和结果记录",
-          "order": 6
-        },
-        {
-          "file": "project-cleanup-plan.md",
-          "title": "项目文件清理和重组",
-          "description": "web-manager目录结构优化方案",
-          "order": 7
-        },
-        {
-          "file": "final-optimization-plan.md",
-          "title": "项目最终优化方案",
-          "description": "文档归档和目录规范化",
-          "order": 8
         },
         {
           "file": "git-guide.md",
           "title": "Git使用指南",
           "description": "项目Git工作流和分支管理",
-          "order": 9
-        },
+          "order": 5
+        }
+      ]
+    },
+    {
+      "id": "api",
+      "name": "API参考",
+      "icon": "🔌",
+      "order": 4,
+      "description": "API接口文档",
+      "documents": [
         {
-          "file": "billfish-database-guide.md",
-          "title": "Billfish数据库完整指南",
-          "description": "深入解析Billfish软件数据库结构、预览图机制和开发要点",
-          "order": 10,
+          "file": "api-reference.md",
+          "title": "API参考文档",
+          "description": "完整的API接口说明和示例",
+          "order": 1,
           "badge": "新增"
         }
       ]
@@ -114,15 +99,14 @@
       "id": "setup",
       "name": "安装配置",
       "icon": "⚙️",
-      "order": 4,
+      "order": 5,
       "description": "环境配置和安装指南",
       "documents": [
         {
-          "file": "sqlite-installation-complete.md",
-          "title": "SQLite3扩展安装完成",
-          "description": "SQLite3扩展安装步骤和验证方法",
-          "order": 1,
-          "badge": "配置"
+          "file": "vps-mount-nas-webdav.md",
+          "title": "VPS挂载NAS WebDAV",
+          "description": "使用davfs2在VPS上挂载WebDAV共享",
+          "order": 1
         }
       ]
     },
@@ -130,27 +114,15 @@
       "id": "release-notes",
       "name": "版本说明",
       "icon": "📋",
-      "order": 5,
+      "order": 6,
       "description": "版本更新和发布说明",
       "documents": [
-        {
-          "file": "v0.1.0.md",
-          "title": "v0.1.0 发布说明",
-          "description": "BillfishManagerV2和完整元数据支持",
-          "order": 1,
-          "badge": "最新"
-        },
-        {
-          "file": "version-summary-v0.1.0.md",
-          "title": "v0.1.0 版本总结",
-          "description": "详细的版本创建和统计信息",
-          "order": 2
-        },
         {
           "file": "changelog.md",
           "title": "完整更新日志",
           "description": "所有版本的详细更新记录",
-          "order": 3
+          "order": 1,
+          "badge": "最新"
         }
       ]
     },
@@ -158,7 +130,7 @@
       "id": "troubleshooting",
       "name": "故障排除",
       "icon": "🔍",
-      "order": 6,
+      "order": 7,
       "description": "常见问题和解决方案",
       "documents": [
         {

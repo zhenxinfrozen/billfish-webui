@@ -5,6 +5,10 @@
 
 require_once '../../config.php';
 
+// 为header设置页面标题
+$pageTitle = '预览图检查工具';
+$currentPage = 'tools-ui.php';
+
 $sqlite_available = class_exists('SQLite3');
 $error_message = null;
 $files = [];
@@ -53,14 +57,7 @@ if (!$sqlite_available) {
     }
 }
 ?>
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>预览图检查工具 - Billfish Web Manager</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+<?php include '../../includes/header.php'; ?>
     <style>
         .stats-grid {
             display: grid;
@@ -234,7 +231,6 @@ if (!$sqlite_available) {
         <?php endif; ?>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         function filterFiles(type) {
             const rows = document.querySelectorAll('.file-row');
@@ -247,5 +243,5 @@ if (!$sqlite_available) {
             });
         }
     </script>
-</body>
-</html>
+
+<?php include '../../includes/footer.php'; ?>

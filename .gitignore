@@ -32,6 +32,7 @@ web-manager/.htaccess.backup
 # 备份文件
 *.bak
 *.backup
+public/config.php.backup.*
 
 # 可执行文件
 *.exe
@@ -42,25 +43,17 @@ web-manager/sqlite3.exe
 *.ai
 *.eps
 
-# Billfish 数据库文件（包含用户数据）
-*.db
-*.db-journal
+# Billfish回收站备份目录（多重备份，清空后仍保留）
+.recycle2/
+**/.recycle2/
 
-# Billfish 系统文件夹（完全忽略）
-.bf/
-**/.bf/
+# 备份文件
+*.bak
+*.backup
 
-# Billfish 缓存和临时文件
-.recycle/
-.recycle*/
-**/.recycle/
-**/.recycle*/
-.preview/
-**/.preview/
-.temp/
-**/.temp/
-.backup/
-**/.backup/
+# 可执行文件
+*.exe
+web-manager/sqlite3.exe
 
 # 媒体和资源文件现在全部包含
 # 注意: 现在所有媒体文件都会被包含在Git中

@@ -3,102 +3,30 @@
   "version": "0.1.0",
   "categories": [
     {
-      "id": "analysis",
-      "name": "分析工具",
-      "icon": "📊",
-      "order": 1,
-      "description": "数据库和映射分析工具",
-      "tools": [
-        {
-          "id": "deep-analysis",
-          "name": "数据库深度分析",
-          "type": "python",
-          "file": "analysis/deep_analysis.py",
-          "description": "分析数据库映射规则、预览图覆盖率和文件统计",
-          "web_ui": null,
-          "order": 1
-        },
-        {
-          "id": "list-tables",
-          "name": "数据库表查看器",
-          "type": "python",
-          "file": "analysis/list_tables.py",
-          "description": "列出数据库所有表结构并导出CSV",
-          "web_ui": null,
-          "order": 2
-        },
-        {
-          "id": "export-database",
-          "name": "数据库导出工具",
-          "type": "python",
-          "file": "analysis/export_database.py",
-          "description": "导出数据库数据到JSON和CSV格式",
-          "web_ui": null,
-          "order": 3
-        }
-      ]
-    },
-    {
-      "id": "mapping",
-      "name": "映射工具",
-      "icon": "🗺️",
-      "order": 2,
-      "description": "预览图映射生成和验证",
-      "tools": [
-        {
-          "id": "generate-mapping",
-          "name": "生成映射文件",
-          "type": "python",
-          "file": "mapping/generate_mapping_simple.py",
-          "description": "从Billfish数据库生成完整的预览图映射文件",
-          "web_ui": null,
-          "order": 1,
-          "badge": "核心"
-        }
-      ]
-    },
-    {
-      "id": "archived",
-      "name": "归档工具",
-      "icon": "🗄️",
-      "order": 3,
-      "description": "历史开发和测试工具(仅供参考)",
-      "tools": [
-        {
-          "id": "archived-php",
-          "name": "PHP分析工具集",
-          "type": "php",
-          "file": "archived/php/",
-          "description": "开发过程中使用的PHP分析脚本(21个文件)",
-          "web_ui": "web-ui/archived-php-browser.php",
-          "order": 1
-        },
-        {
-          "id": "archived-python",
-          "name": "Python实验脚本",
-          "type": "python",
-          "file": "archived/python/",
-          "description": "历史Python分析脚本(4个文件)",
-          "web_ui": "web-ui/archived-python-browser.php",
-          "order": 2
-        }
-      ]
-    },
-    {
       "id": "web-ui",
       "name": "Web工具",
       "icon": "🌐",
-      "order": 4,
+      "order": 1,
       "description": "浏览器中运行的可视化工具",
       "tools": [
         {
           "id": "system-health-check",
-          "name": "系统状态检查",
+          "name": "系统基础检查",
           "type": "web",
           "file": "web-ui/system-health-check.php",
-          "description": "检查系统健康状况、数据库连接、文件权限等",
+          "description": "检查PHP环境、数据库连接、文件权限等基础配置",
           "web_ui": "web-ui/system-health-check.php",
           "order": 1,
+          "badge": "推荐"
+        },
+        {
+          "id": "database-health",
+          "name": "数据库健康报告",
+          "type": "web",
+          "file": "web-ui/database-health.php",
+          "description": "资源库数据统计、完整性检查和性能分析（已优化大型库性能）",
+          "web_ui": "web-ui/database-health.php",
+          "order": 2,
           "badge": "推荐"
         },
         {
@@ -108,7 +36,7 @@
           "file": "web-ui/database-browser.php",
           "description": "浏览Billfish SQLite数据库的所有表和数据",
           "web_ui": "web-ui/database-browser.php",
-          "order": 2
+          "order": 3
         },
         {
           "id": "preview-checker",
@@ -117,16 +45,74 @@
           "file": "web-ui/preview-checker.php",
           "description": "检查预览图文件的存在性和覆盖率",
           "web_ui": "web-ui/preview-checker.php",
-          "order": 3
+          "order": 4
         },
         {
           "id": "library-config",
           "name": "资料库配置管理",
           "type": "web",
-          "file": "library-config.html",
+          "file": "library-config.php",
           "description": "可视化管理Billfish资料库路径，支持本地、NAS、VPS三种场景的一键切换",
-          "web_ui": "library-config.html",
-          "order": 4,
+          "web_ui": "library-config.php",
+          "order": 5,
+          "badge": "新增"
+        }
+      ]
+    },
+    {
+      "id": "management",
+      "name": "管理工具",
+      "icon": "⚙️",
+      "order": 2,
+      "description": "系统配置和维护工具",
+      "tools": [
+        {
+          "id": "cache-manager",
+          "name": "缓存管理器",
+          "type": "web",
+          "file": "web-ui/cache-manager.php",
+          "description": "清理和管理系统缓存、临时文件",
+          "web_ui": null,
+          "order": 1,
+          "badge": "开发中"
+        },
+        {
+          "id": "backup-manager",
+          "name": "备份管理",
+          "type": "web",
+          "file": "web-ui/backup-manager.php",
+          "description": "备份和恢复数据库及配置文件",
+          "web_ui": null,
+          "order": 2,
+          "badge": "计划中"
+        },
+        {
+          "id": "log-viewer",
+          "name": "日志查看器",
+          "type": "web",
+          "file": "web-ui/log-viewer.php",
+          "description": "查看系统运行日志和错误记录",
+          "web_ui": null,
+          "order": 3,
+          "badge": "计划中"
+        }
+      ]
+    },
+    {
+      "id": "analysis",
+      "name": "分析工具",
+      "icon": "📊",
+      "order": 3,
+      "description": "数据库和映射分析工具",
+      "tools": [
+        {
+          "id": "generate-mapping",
+          "name": "映射生成器",
+          "type": "web",
+          "file": "web-ui/mapping-generator.php",
+          "description": "从Billfish数据库生成完整的文件-预览图映射JSON（Web可视化版本）",
+          "web_ui": "web-ui/mapping-generator.php",
+          "order": 1,
           "badge": "新增"
         }
       ]

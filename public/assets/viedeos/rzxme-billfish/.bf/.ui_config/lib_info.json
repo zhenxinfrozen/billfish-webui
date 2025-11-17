@@ -1,0 +1,26 @@
+{
+    "audioVolume": 0,
+    "closeLibrarType": "5",
+    "closeLibraryId": "18",
+    "cloudLocalFolderId": "-1",
+    "coverPath": "",
+    "createdDefaultCloudLocalFolder": true,
+    "createdDefaultDownloadFolder": false,
+    "downloadFolderId": "0",
+    "downloadFolderName": "文件夹",
+    "folders": [
+    ],
+    "importType": 0,
+    "libraryName": "rzxme-billfish",
+    "openedColorOptimize": true,
+    "previewType": 0,
+    "tag_ids": [
+        13,
+        12,
+        11,
+        10,
+        9,
+        8
+    ],
+    "videoVolume": 0
+}

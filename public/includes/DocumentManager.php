@@ -93,7 +93,14 @@ class DocumentManager {
      * 解析markdown文件获取元数据
      */
     private function parseMarkdownFile($filePath, $fileName) {
-        $content = file_get_contents($filePath);
+        $content = @file_get_contents($filePath);
+        if ($content === false) {
+            $content = '';
+        }
+        // 确保内容是UTF-8编码
+        if (!mb_check_encoding($content, 'UTF-8')) {
+            $content = mb_convert_encoding($content, 'UTF-8', 'auto');
+        }
         $title = $this->extractTitle($content) ?: pathinfo($fileName, PATHINFO_FILENAME);
         $description = $this->extractDescription($content);
         
@@ -240,8 +247,13 @@ class DocumentManager {
             }
         }
         
+        $content = @file_get_contents($filePath);
+        if ($content !== false && !mb_check_encoding($content, 'UTF-8')) {
+            $content = mb_convert_encoding($content, 'UTF-8', 'auto');
+        }
+        
         return [
-            'content' => file_get_contents($filePath),
+            'content' => $content ?: '',
             'path' => $filePath,
             'metadata' => $metadata,
             'section' => $section
@@ -258,7 +270,10 @@ class DocumentManager {
             foreach ($section['documents'] ?? [] as $doc) {
                 $filePath = $this->docsPath . '/' . $section['id'] . '/' . $doc['file'];
                 if (file_exists($filePath)) {
-                    $content = file_get_contents($filePath);
+                    $content = @file_get_contents($filePath);
+                    if ($content !== false && !mb_check_encoding($content, 'UTF-8')) {
+                        $content = mb_convert_encoding($content, 'UTF-8', 'auto');
+                    }
                     if (stripos($content, $query) !== false || 
                         stripos($doc['title'], $query) !== false ||
                         stripos($doc['description'] ?? '', $query) !== false) {

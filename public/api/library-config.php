@@ -23,8 +23,8 @@ class LibraryManager {
     public function __construct() {
         $this->configFile = __DIR__ . '/../config.php';
         $this->librariesFile = __DIR__ . '/../libraries.json';
-        // 项目根目录应该是 web-manager 的上级目录
-        $this->projectRoot = dirname(dirname(__DIR__));
+        // 项目根目录：public目录的父目录
+        $this->projectRoot = dirname(__DIR__);
     }
     
     /**
@@ -36,13 +36,17 @@ class LibraryManager {
         $path = trim($path);
         
         if ($type === 'project') {
-            // 项目内相对路径处理
+            // 项目相对路径处理
             $path = str_replace('\\', '/', $path);
-            $path = ltrim($path, '/');  // 移除开头的斜杠
             
-            // 转换为绝对路径
-            $fullPath = $this->projectRoot . '/' . $path;
-            return $this->normalizePath($fullPath, 'computer');
+            // 如果已经是 ../ 或 ./ 开头，直接返回
+            if (strpos($path, '../') === 0 || strpos($path, './') === 0) {
+                return $path;
+            }
+            
+            // 否则添加 ./ 前缀
+            $path = ltrim($path, '/');
+            return './' . $path;
         }
         
         // 将反斜杠转换为正斜杠
@@ -54,6 +58,19 @@ class LibraryManager {
         // 移除末尾的斜杠（除非是根目录）
         $path = rtrim($path, '/');
         
+        return $path;
+    }
+    
+    /**
+     * 将相对路径转换为绝对路径（用于实际访问文件）
+     */
+    private function resolveRelativePath($path) {
+        // 如果是相对路径（以 ./ 或 ../ 开头）
+        if (strpos($path, './') === 0 || strpos($path, '../') === 0) {
+            // 相对于 public 目录解析
+            return realpath($this->projectRoot . '/' . $path) ?: $this->projectRoot . '/' . $path;
+        }
+        // 否则返回原路径
         return $path;
     }
     
@@ -71,21 +88,24 @@ class LibraryManager {
         // 标准化路径
         $normalizedPath = $this->normalizePath($path, $type);
         
+        // 解析实际路径（用于检查文件系统）
+        $actualPath = $this->resolveRelativePath($normalizedPath);
+        
         // 检查路径格式
-        if (!$this->isValidPathFormat($normalizedPath)) {
+        if (!$this->isValidPathFormat($actualPath)) {
             $errors[] = '路径格式不正确';
         }
         
         // 检查路径是否存在
-        if (!is_dir($normalizedPath)) {
+        if (!is_dir($actualPath)) {
             if ($type === 'project') {
-                $errors[] = '项目内路径不存在: ' . $path;
+                $errors[] = '项目内路径不存在: ' . $path . ' (解析为: ' . $normalizedPath . ')';
             } else {
-                $errors[] = '路径不存在或无法访问';
+                $errors[] = '路径不存在或无法访问: ' . $normalizedPath;
             }
         } else {
             // 检查是否为Billfish资料库
-            $dbPath = $normalizedPath . '/.bf/billfish.db';
+            $dbPath = $actualPath . '/.bf/billfish.db';
             if (!file_exists($dbPath)) {
                 $errors[] = '该路径不是有效的Billfish资料库（缺少.bf/billfish.db文件）';
             }
@@ -98,6 +118,11 @@ class LibraryManager {
      * 检查路径格式是否有效
      */
     private function isValidPathFormat($path) {
+        // 相对路径（项目内）- 支持 ./ 和 ../
+        if (strpos($path, './') === 0 || strpos($path, '../') === 0) {
+            return true;
+        }
+        
         // Windows路径: D:/path/to/folder
         if (preg_match('/^[A-Za-z]:\//', $path)) {
             return true;
@@ -125,11 +150,22 @@ class LibraryManager {
         
         // 标记当前激活的资料库
         foreach ($libraries as &$lib) {
-            $lib['active'] = ($lib['path'] === $currentPath);
+            // 解析路径用于比较
+            $libPath = $this->resolveRelativePath($lib['path']);
+            $comparePath = $this->resolveRelativePath($currentPath);
+            
+            // 标准化后比较（统一斜杠方向，移除末尾斜杠）
+            $libPathNormalized = rtrim(str_replace('\\', '/', $libPath), '/');
+            $comparePathNormalized = rtrim(str_replace('\\', '/', $comparePath), '/');
+            
+            $lib['active'] = ($libPathNormalized === $comparePathNormalized);
             
             // 获取资料库统计信息
-            if ($lib['active'] && is_dir($lib['path'])) {
-                $lib['stats'] = $this->getLibraryStats($lib['path']);
+            if ($lib['active']) {
+                $actualPath = $this->resolveRelativePath($lib['path']);
+                if (is_dir($actualPath)) {
+                    $lib['stats'] = $this->getLibraryStats($lib['path']);
+                }
             }
         }
         
@@ -214,17 +250,20 @@ class LibraryManager {
             return ['success' => false, 'error' => '资料库不存在'];
         }
         
-        // 验证目标路径
-        $type = $targetLibrary['type'] ?? 'computer';
-        $pathErrors = $this->validatePath($targetLibrary['original_path'] ?? $targetLibrary['path'], $type);
-        if (!empty($pathErrors)) {
-            return ['success' => false, 'errors' => $pathErrors];
+        // 解析路径用于验证
+        $actualPath = $this->resolveRelativePath($targetLibrary['path']);
+        
+        // 验证路径是否存在且是Billfish资料库
+        if (!is_dir($actualPath)) {
+            return ['success' => false, 'error' => '路径不存在: ' . $targetLibrary['path']];
         }
         
-        // 备份当前配置
-        $this->backupConfig();
+        $dbPath = $actualPath . '/.bf/billfish.db';
+        if (!file_exists($dbPath)) {
+            return ['success' => false, 'error' => '该路径不是有效的Billfish资料库（缺少.bf/billfish.db文件）'];
+        }
         
-        // 更新配置文件
+        // 更新配置文件（验证通过后才更新，无需备份）
         if ($this->updateConfig($targetLibrary['path'])) {
             return ['success' => true, 'library' => $targetLibrary];
         } else {
@@ -330,7 +369,10 @@ class LibraryManager {
      * 获取资料库统计信息
      */
     private function getLibraryStats($path) {
-        $dbPath = $path . '/.bf/billfish.db';
+        // 解析实际路径
+        $actualPath = $this->resolveRelativePath($path);
+        $dbPath = $actualPath . '/.bf/billfish.db';
+        
         if (!file_exists($dbPath)) {
             return null;
         }
@@ -341,7 +383,7 @@ class LibraryManager {
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
             
             $files = $result['count'] ?? 0;
-            $sizeBytes = $this->getDirectorySize($path);
+            $sizeBytes = $this->getDirectorySize($actualPath);
             $sizeGB = round($sizeBytes / (1024 * 1024 * 1024), 2);
             
             return [
@@ -401,17 +443,22 @@ class LibraryManager {
      */
     private function getCurrentPath() {
         if (defined('BILLFISH_PATH')) {
-            return $this->normalizePath(BILLFISH_PATH);
+            $path = BILLFISH_PATH;
+            
+            // 检查是否是项目内路径（相对于projectRoot）
+            $projectRoot = rtrim(str_replace('\\', '/', $this->projectRoot), '/');
+            $normalizedPath = rtrim(str_replace('\\', '/', $path), '/');
+            
+            // 如果路径在项目根目录下，转换为相对路径格式
+            if (strpos($normalizedPath, $projectRoot) === 0) {
+                $relativePath = substr($normalizedPath, strlen($projectRoot) + 1);
+                return './' . $relativePath;
+            }
+            
+            // 否则返回标准化的绝对路径
+            return $this->normalizePath($path);
         }
         return null;
-    }
-    
-    /**
-     * 备份配置文件
-     */
-    private function backupConfig() {
-        $backupFile = $this->configFile . '.backup.' . date('Y-m-d-H-i-s');
-        copy($this->configFile, $backupFile);
     }
     
     /**
@@ -420,17 +467,13 @@ class LibraryManager {
     private function updateConfig($newPath) {
         $content = file_get_contents($this->configFile);
         
-        // 支持两种路径格式：相对路径和绝对路径
-        $configPath = $newPath;
-        
-        // 如果是项目内路径，转换为相对路径表示
-        $projectPublicDir = dirname(__DIR__);
-        if (strpos($newPath, $projectPublicDir) === 0) {
-            $relativePath = substr($newPath, strlen($projectPublicDir) + 1);
-            $configPath = "__DIR__ . '/" . str_replace('\\', '/', $relativePath) . "'";
-            $replacement = "define('BILLFISH_PATH', " . $configPath . ")";
+        // 根据路径类型生成不同的配置代码
+        if (strpos($newPath, './') === 0) {
+            // 相对路径：使用 __DIR__ 拼接
+            $relativePath = substr($newPath, 2);  // 移除 ./
+            $replacement = "define('BILLFISH_PATH', __DIR__ . '/" . $relativePath . "')";
         } else {
-            // 绝对路径
+            // 绝对路径：直接使用
             $replacement = "define('BILLFISH_PATH', '" . addslashes(str_replace('\\', '/', $newPath)) . "')";
         }
         

@@ -1,18 +1,20 @@
 <?php
 /**
- * 系统状态检查工具
+ * 系统基础检查工具 - v0.1.4
+ * 专注于环境验证、连接测试和基础配置检查
  */
 
 require_once '../../config.php';
 
+$currentPage = 'tools-ui.php';
+$pageTitle = '系统基础检查';
+
 // 执行检查
 $checks = [
+    'php_extensions' => checkPHPExtensions(),
     'database' => checkDatabase(),
     'preview_folder' => checkPreviewFolder(),
-    'materials_folder' => checkMaterialsFolder(),
-    'php_extensions' => checkPHPExtensions(),
-    'permissions' => checkPermissions(),
-    'preview_coverage' => checkPreviewCoverage()
+    'permissions' => checkPermissions()
 ];
 
 // 计算总体状态
@@ -47,7 +49,7 @@ function checkDatabase() {
 }
 
 function checkPreviewFolder() {
-    $previewPath = BILLFISH_PATH . '/.preview';
+    $previewPath = BILLFISH_PATH . '/.bf/.preview';
     if (!is_dir($previewPath)) {
         return [
             'status' => 'danger',
@@ -56,38 +58,11 @@ function checkPreviewFolder() {
         ];
     }
     
-    $folders = glob($previewPath . '/*', GLOB_ONLYDIR);
+    // 只检查目录存在性，不遍历文件
     return [
         'status' => 'success',
-        'message' => "预览文件夹正常,包含 " . count($folders) . " 个子目录",
+        'message' => "预览文件夹正常",
         'details' => "路径: {$previewPath}"
-    ];
-}
-
-function checkMaterialsFolder() {
-    $materialsPath = BILLFISH_PATH . '/materials';
-    if (!is_dir($materialsPath)) {
-        return [
-            'status' => 'warning',
-            'message' => '素材文件夹不存在',
-            'details' => $materialsPath
-        ];
-    }
-    
-    $size = 0;
-    $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($materialsPath));
-    $count = 0;
-    foreach ($files as $file) {
-        if ($file->isFile()) {
-            $size += $file->getSize();
-            $count++;
-        }
-    }
-    
-    return [
-        'status' => 'success',
-        'message' => "素材文件夹正常,共 {$count} 个文件",
-        'details' => "总大小: " . formatBytes($size)
     ];
 }
 
@@ -119,7 +94,7 @@ function checkPHPExtensions() {
 function checkPermissions() {
     $paths = [
         BILLFISH_PATH . '/.bf/billfish.db',
-        BILLFISH_PATH . '/.preview'
+        BILLFISH_PATH . '/.bf/.preview'
     ];
     
     $issues = [];
@@ -144,65 +119,10 @@ function checkPermissions() {
     ];
 }
 
-function checkPreviewCoverage() {
-    if (!class_exists('SQLite3')) {
-        return [
-            'status' => 'warning',
-            'message' => '无法检查预览图覆盖率',
-            'details' => 'SQLite3 扩展未启用'
-        ];
-    }
-    
-    try {
-        $db = new SQLite3(BILLFISH_PATH . '/.bf/billfish.db');
-        $total = $db->querySingle("SELECT COUNT(*) FROM bf_file");
-        $withPreview = 0;
-        
-        $result = $db->query("SELECT id FROM bf_file LIMIT 100");
-        $sampleSize = 0;
-        while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
-            $sampleSize++;
-            $hexFolder = substr(str_pad(dechex($row['id']), 4, '0', STR_PAD_LEFT), -2);
-            $previewPath = BILLFISH_PATH . "/.bf/.preview/{$hexFolder}/{$row['id']}.small.webp";
-            if (file_exists($previewPath)) {
-                $withPreview++;
-            }
-        }
-        
-        $coverage = $sampleSize > 0 ? round(($withPreview / $sampleSize) * 100, 1) : 0;
-        
-        return [
-            'status' => $coverage > 90 ? 'success' : ($coverage > 50 ? 'warning' : 'danger'),
-            'message' => "预览图覆盖率: {$coverage}% (抽样 {$sampleSize} 个文件)",
-            'details' => "预计总覆盖: " . round($total * $coverage / 100) . " / {$total} 个文件"
-        ];
-    } catch (Exception $e) {
-        return [
-            'status' => 'danger',
-            'message' => '检查预览图覆盖率失败',
-            'details' => $e->getMessage()
-        ];
-    }
-}
 
-function formatBytes($bytes) {
-    $units = ['B', 'KB', 'MB', 'GB', 'TB'];
-    $i = 0;
-    while ($bytes >= 1024 && $i < count($units) - 1) {
-        $bytes /= 1024;
-        $i++;
-    }
-    return round($bytes, 2) . ' ' . $units[$i];
-}
+include '../../includes/header.php';
 ?>
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>系统状态检查 - Billfish Web Manager</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
     <style>
         .check-card {
             transition: transform 0.2s;
@@ -220,12 +140,21 @@ function formatBytes($bytes) {
             margin-bottom: 30px;
         }
     </style>
-</head>
-<body class="bg-light">
-    <div class="container my-5">
-        <div class="text-center mb-4">
-            <h1><i class="fas fa-heartbeat"></i> 系统状态检查</h1>
-            <p class="text-muted">检查 Billfish Web Manager 系统健康状况</p>
+
+    <div class="container mt-4" style="padding-top: 70px;">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1><i class="fas fa-stethoscope"></i> 系统基础检查</h1>
+                <p class="text-muted">验证运行环境、扩展和基础配置</p>
+            </div>
+            <div>
+                <a href="/tools-ui.php" class="btn btn-outline-secondary me-2">
+                    <i class="fas fa-arrow-left"></i> 返回工具中心
+                </a>
+                <button onclick="location.reload()" class="btn btn-primary">
+                    <i class="fas fa-sync"></i> 重新检查
+                </button>
+            </div>
         </div>
 
         <!-- 总体状态 -->
@@ -266,17 +195,22 @@ function formatBytes($bytes) {
             <?php endforeach; ?>
         </div>
 
-        <!-- 操作按钮 -->
-        <div class="text-center mt-4">
-            <a href="../../tools-ui.php" class="btn btn-primary">
-                <i class="fas fa-tools"></i> 返回工具中心
-            </a>
-            <button onclick="location.reload()" class="btn btn-secondary">
-                <i class="fas fa-sync"></i> 重新检查
-            </button>
+        <!-- 说明信息 -->
+        <div class="alert alert-info mt-4">
+            <h5><i class="fas fa-info-circle"></i> 关于基础检查</h5>
+            <ul class="mb-0">
+                <li><strong>PHP扩展:</strong> 检查必需的PHP扩展是否已加载</li>
+                <li><strong>数据库连接:</strong> 测试SQLite数据库连接是否正常</li>
+                <li><strong>预览文件夹:</strong> 验证预览图目录是否存在</li>
+                <li><strong>文件权限:</strong> 检查关键路径的读取权限</li>
+            </ul>
+            <hr>
+            <p class="mb-0">
+                <i class="fas fa-lightbulb"></i> 
+                需要查看详细的资源库统计和数据完整性？请使用 
+                <a href="database-health.php" class="alert-link">数据库健康报告</a>
+            </p>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+<?php include '../../includes/footer.php'; ?>
