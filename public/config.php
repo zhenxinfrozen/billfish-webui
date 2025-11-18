@@ -3,23 +3,41 @@
  * Billfish Web Manager 配置文件
  */
 
-// 获取当前Git分支名称
-function getCurrentGitBranch() {
-    $branch = 'unknown';
-    if (function_exists('exec')) {
+// 获取版本信息
+function getVersion() {
+    // 优先使用固定版本号（发布时设置）
+    $staticVersion = 'v0.1.0'; // 发布时更新此值
+    
+    // 如果在Git仓库中，尝试获取动态版本
+    if (function_exists('exec') && is_dir(__DIR__ . '/../.git')) {
         $output = [];
         $returnCode = 0;
+        
+        // 方法1: 尝试获取最近的标签
+        exec('git describe --tags --always 2>nul', $output, $returnCode);
+        if ($returnCode === 0 && !empty($output)) {
+            $version = trim($output[0]);
+            // 如果有标签，使用标签；否则使用短commit hash
+            return $version;
+        }
+        
+        // 方法2: 获取分支名（清理heads/前缀）
+        $output = [];
         exec('git rev-parse --abbrev-ref HEAD 2>nul', $output, $returnCode);
         if ($returnCode === 0 && !empty($output)) {
             $branch = trim($output[0]);
+            // 移除 "heads/" 前缀（如果存在）
+            $branch = preg_replace('#^heads/#', '', $branch);
+            return 'dev-' . $branch;
         }
     }
-    return $branch;
+    
+    // 回退到静态版本号
+    return $staticVersion;
 }
 
-// 版本信息 - 动态读取Git分支
-$currentBranch = getCurrentGitBranch();
-define('BILLFISH_WEB_VERSION', 'Git-' . $currentBranch);
+// 版本信息
+define('BILLFISH_WEB_VERSION', getVersion());
 define('BILLFISH_WEB_BUILD_DATE', date('Y-m-d'));
 
 // Billfish 资源库路径
