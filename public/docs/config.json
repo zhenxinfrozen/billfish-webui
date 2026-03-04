@@ -1,151 +1,195 @@
 {
-  "title": "Billfish Web Manager 文档中心",
-  "version": "0.1.0",
-  "sections": [
-    {
-      "id": "getting-started",
-      "name": "入门指南",
-      "icon": "🚀",
-      "order": 1,
-      "description": "快速了解和上手系统",
-      "documents": [
+    "title": "Billfish Web Manager 文档中心",
+    "version": "0.1.0",
+    "sections": [
         {
-          "file": "quick-start.md",
-          "title": "快速入门",
-          "description": "5分钟了解系统核心功能",
-          "order": 1,
-          "badge": "推荐"
+            "id": "getting-started",
+            "name": "入门指南",
+            "icon": "🚀",
+            "order": 1,
+            "description": "快速了解和上手系统",
+            "documents": [
+                {
+                    "file": "quick-start.md",
+                    "title": "快速入门",
+                    "description": "5分钟了解系统核心功能",
+                    "order": 1,
+                    "badge": "推荐"
+                },
+                {
+                    "file": "library-configuration.md",
+                    "title": "素材库配置",
+                    "description": "如何配置和管理素材库",
+                    "order": 2
+                }
+            ]
         },
         {
-          "file": "library-configuration.md",
-          "title": "素材库配置",
-          "description": "如何配置和管理素材库",
-          "order": 2
-        }
-      ]
-    },
-    {
-      "id": "user-guide",
-      "name": "用户指南",
-      "icon": "📖",
-      "order": 2,
-      "description": "详细的功能使用说明",
-      "documents": [
-        {
-          "file": "using-docs-center.md",
-          "title": "文档中心使用指南",
-          "description": "如何使用文档中心查找和阅读文档",
-          "order": 1
-        }
-      ]
-    },
-    {
-      "id": "development",
-      "name": "开发文档",
-      "icon": "🔧",
-      "order": 3,
-      "description": "技术文档和API参考",
-      "documents": [
-        {
-          "file": "README.md",
-          "title": "开发概览",
-          "description": "项目技术栈和核心组件介绍",
-          "order": 1
+            "id": "user-guide",
+            "name": "用户指南",
+            "icon": "📖",
+            "order": 2,
+            "description": "详细的功能使用说明",
+            "documents": [
+                {
+                    "file": "using-docs-center.md",
+                    "title": "文档中心使用指南",
+                    "description": "如何使用文档中心查找和阅读文档",
+                    "order": 1
+                }
+            ]
         },
         {
-          "file": "system-summary.md",
-          "title": "系统架构总结",
-          "description": "完整的系统架构和数据流程",
-          "order": 2
+            "id": "development",
+            "name": "开发文档",
+            "icon": "🔧",
+            "order": 3,
+            "description": "技术文档和API参考",
+            "documents": [
+                {
+                    "file": "README.md",
+                    "title": "开发概览",
+                    "description": "项目技术栈和核心组件介绍",
+                    "order": 1
+                },
+                {
+                    "file": "system-summary.md",
+                    "title": "系统架构总结",
+                    "description": "完整的系统架构和数据流程",
+                    "order": 2
+                },
+                {
+                    "file": "billfish-database-guide.md",
+                    "title": "Billfish数据库完整指南",
+                    "description": "深入解析数据库结构、预览图机制和开发要点",
+                    "order": 3,
+                    "badge": "重要"
+                },
+                {
+                    "file": "sqlite-usage-guide.md",
+                    "title": "SQLite扩展使用说明",
+                    "description": "SQLite vs MySQL对比和使用指南",
+                    "order": 4
+                },
+                {
+                    "file": "git-guide.md",
+                    "title": "Git使用指南",
+                    "description": "项目Git工作流和分支管理",
+                    "order": 5
+                },
+                {
+                    "file": "ADMIN-SYSTEM-SUMMARY.md",
+                    "title": "后台架构系统总结",
+                    "description": "完整的系统架构和数据流程总结",
+                    "order": 10,
+                    "badge": "核心"
+                },
+                {
+                    "file": "ADMIN-ARCHITECTURE-ANALYSIS.md",
+                    "title": "后台架构演进分析",
+                    "description": "项目架构的历史演进与分析报告",
+                    "order": 11
+                },
+                {
+                    "file": "BACKEND-EXTENSIBILITY-GUIDE.md",
+                    "title": "后端扩展性设计指南",
+                    "description": "如何优雅地扩展现有后端逻辑",
+                    "order": 12
+                }
+            ]
         },
         {
-          "file": "billfish-database-guide.md",
-          "title": "Billfish数据库完整指南",
-          "description": "深入解析数据库结构、预览图机制和开发要点",
-          "order": 3,
-          "badge": "重要"
+            "id": "api",
+            "name": "API参考",
+            "icon": "🔌",
+            "order": 4,
+            "description": "API接口文档",
+            "documents": [
+                {
+                    "file": "api-reference.md",
+                    "title": "API参考文档",
+                    "description": "完整的API接口说明和示例",
+                    "order": 1,
+                    "badge": "新增"
+                }
+            ]
         },
         {
-          "file": "sqlite-usage-guide.md",
-          "title": "SQLite扩展使用说明",
-          "description": "SQLite vs MySQL对比和使用指南",
-          "order": 4
+            "id": "setup",
+            "name": "安装配置",
+            "icon": "⚙️",
+            "order": 5,
+            "description": "环境配置和安装指南",
+            "documents": [
+                {
+                    "file": "vps-mount-nas-webdav.md",
+                    "title": "VPS挂载NAS WebDAV",
+                    "description": "使用davfs2在VPS上挂载WebDAV共享",
+                    "order": 1
+                }
+            ]
         },
         {
-          "file": "git-guide.md",
-          "title": "Git使用指南",
-          "description": "项目Git工作流和分支管理",
-          "order": 5
-        }
-      ]
-    },
-    {
-      "id": "api",
-      "name": "API参考",
-      "icon": "🔌",
-      "order": 4,
-      "description": "API接口文档",
-      "documents": [
-        {
-          "file": "api-reference.md",
-          "title": "API参考文档",
-          "description": "完整的API接口说明和示例",
-          "order": 1,
-          "badge": "新增"
-        }
-      ]
-    },
-    {
-      "id": "setup",
-      "name": "安装配置",
-      "icon": "⚙️",
-      "order": 5,
-      "description": "环境配置和安装指南",
-      "documents": [
-        {
-          "file": "vps-mount-nas-webdav.md",
-          "title": "VPS挂载NAS WebDAV",
-          "description": "使用davfs2在VPS上挂载WebDAV共享",
-          "order": 1
-        }
-      ]
-    },
-    {
-      "id": "release-notes",
-      "name": "版本说明",
-      "icon": "📋",
-      "order": 6,
-      "description": "版本更新和发布说明",
-      "documents": [
-        {
-          "file": "changelog.md",
-          "title": "完整更新日志",
-          "description": "所有版本的详细更新记录",
-          "order": 1,
-          "badge": "最新"
-        }
-      ]
-    },
-    {
-      "id": "troubleshooting",
-      "name": "故障排除",
-      "icon": "🔍",
-      "order": 7,
-      "description": "常见问题和解决方案",
-      "documents": [
-        {
-          "file": "preview-missing.md",
-          "title": "预览图缺失问题",
-          "description": "预览图缺失的原因分析和解决方案",
-          "order": 1
+            "id": "release-notes",
+            "name": "版本说明",
+            "icon": "📋",
+            "order": 6,
+            "description": "版本更新和发布说明",
+            "documents": [
+                {
+                    "file": "changelog.md",
+                    "title": "完整更新日志",
+                    "description": "所有版本的详细更新记录",
+                    "order": 1,
+                    "badge": "最新"
+                },
+                {
+                    "file": "CHANGELOG-v0.9.0.md",
+                    "title": "v0.9.0 更新日志",
+                    "description": "版本里程碑更新记录",
+                    "order": 5
+                },
+                {
+                    "file": "RESTRUCTURE-v0.8.4.md",
+                    "title": "v0.8.4 架构重构报告",
+                    "description": "上一次大规模代码重组的详细记录",
+                    "order": 6
+                }
+            ]
         },
         {
-          "file": "generate-previews-guide.md",
-          "title": "预览图生成指南",
-          "description": "如何为文件生成预览图",
-          "order": 2
+            "id": "troubleshooting",
+            "name": "故障排除",
+            "icon": "🔍",
+            "order": 7,
+            "description": "常见问题和解决方案",
+            "documents": [
+                {
+                    "file": "preview-missing.md",
+                    "title": "预览图缺失问题",
+                    "description": "预览图缺失的原因分析和解决方案",
+                    "order": 1
+                },
+                {
+                    "file": "generate-previews-guide.md",
+                    "title": "预览图生成指南",
+                    "description": "如何为文件生成预览图",
+                    "order": 2
+                },
+                {
+                    "file": "BLACK-THUMBNAIL-SOLUTION.md",
+                    "title": "视频黑屏缩略图解决方案",
+                    "description": "解决部分视频缩略图显示为黑色的策略",
+                    "order": 5,
+                    "badge": "推荐"
+                },
+                {
+                    "file": "FFMPEG-THUMBNAIL-SUCCESS.md",
+                    "title": "FFmpeg 缩略图实验报告",
+                    "description": "关于FFmpeg生成缩略图的成功案例及配置",
+                    "order": 6
+                }
+            ]
         }
-      ]
-    }
-  ]
+    ]
 }

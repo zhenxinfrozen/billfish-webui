@@ -406,9 +406,9 @@ sqlite3 /path/to/database.bf3
 
 ## 相关文档
 
-- [SQLite 使用说明](sqlite-usage-guide.md)
+- [SQLite 使用说明](SQLite%20扩展使用说明.md)
 - [开发指南](README.md)
-- [系统架构](system-summary.md)
+- [系统架构](系统架构总结.md)
 
 ---
 

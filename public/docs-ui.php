@@ -12,10 +12,19 @@ require_once 'includes/DocumentManager.php';
 $docManager = new DocumentManager();
 $sectionId = $_GET['section'] ?? null;
 $fileName = $_GET['file'] ?? null;
+$searchQuery = $_GET['q'] ?? null;
 
-// 获取文档内容
+// Search results logic
+$searchResults = null;
+if ($searchQuery) {
+    $searchResults = $docManager->searchDocuments($searchQuery);
+    $pageTitle = '搜索结果: ' . $searchQuery;
+}
+
+// 鑾峰彇鏂囨。鍐呭
+
 $document = null;
-if ($sectionId && $fileName) {
+if (!$searchQuery && $sectionId && $fileName) {
     $document = $docManager->getDocument($sectionId, $fileName);
 }
 
@@ -512,8 +521,16 @@ $headerContent = ob_get_clean();
     <div class="docs-container" style="margin-top: 0;">
         <!-- 侧边栏导航 -->
         <aside class="docs-sidebar">
-            <div class="sidebar-header">
+                        <div class="sidebar-header">
                 <h2>文档导航</h2>
+                <div class="search-container mt-3 mb-2 px-2">
+                    <form action="docs-ui.php" method="GET" class="position-relative">
+                        <input type="text" name="q" class="form-control form-control-sm ps-4" 
+                               placeholder="搜索文档..." value="<?= htmlspecialchars($_GET['q'] ?? '') ?>"
+                               style="background: #fff; border-radius: 6px; border: 1px solid #d0d7de;">
+                        <i class="fas fa-search position-absolute top-50 translate-middle-y start-0 ms-3 text-muted" style="font-size: 12px;"></i>
+                    </form>
+                </div>
             </div>
             
             <nav class="sidebar-nav">
@@ -548,7 +565,30 @@ $headerContent = ob_get_clean();
         <!-- 主内容区 -->
         <main class="docs-content">
             <div class="content-wrapper">
-                <?php if ($document): ?>
+                                <?php if ($searchQuery): ?>
+                    <!-- Search Results -->
+                    <div class="search-results">
+                        <h1 class="mb-4"><i class="fas fa-search"></i> 搜索结果: "<?= htmlspecialchars($searchQuery) ?>"</h1>
+                        <p class="text-muted">找到 <?= count($searchResults) ?> 个匹配结果</p>
+                        <hr>
+                        <?php if (empty($searchResults)): ?>
+                            <div class="alert alert-light">未找到相关内容</div>
+                        <?php else: ?>
+                            <div class="list-group list-group-flush">
+                                <?php foreach ($searchResults as $result): ?>
+                                    <a href="docs-ui.php?section=<?= $result['section']['id'] ?>&file=<?= urlencode($result['document']['file']) ?>" 
+                                       class="list-group-item list-group-item-action py-3 border-0 rounded-3 mb-2 bg-light">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <h5 class="mb-0 text-primary"><?= htmlspecialchars($result['document']['title']) ?></h5>
+                                            <span class="badge bg-secondary"><?= htmlspecialchars($result['section']['name']) ?></span>
+                                        </div>
+                                        <p class="mb-1 text-muted small"><?= $result['preview'] ?></p>
+                                    </a>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                <?php elseif ($document): ?>
                     <!-- 面包屑导航 -->
                     <nav class="breadcrumb-nav" aria-label="breadcrumb">
                         <?php foreach ($breadcrumbs as $index => $crumb): ?>
@@ -591,82 +631,39 @@ $headerContent = ob_get_clean();
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
-    <script>
-        // 代码高亮
+        <script>
+        // 代码高亮和复制按钮
         document.addEventListener('DOMContentLoaded', function() {
-            // 高亮所有代码块
+            document.querySelectorAll('pre').forEach(function(pre) {
+                // Add relative position to pre
+                pre.style.position = 'relative';
+                
+                // Create copy button
+                const btn = document.createElement('button');
+                btn.className = 'btn btn-sm btn-dark position-absolute top-0 end-0 m-2';
+                btn.innerHTML = '<i class="far fa-copy"></i>';
+                btn.title = '复制代码';
+                btn.style.opacity = '0.5';
+                btn.style.fontSize = '12px';
+                btn.style.padding = '2px 6px';
+                
+                btn.onmouseover = () => btn.style.opacity = '1';
+                btn.onmouseout = () => btn.style.opacity = '0.5';
+                
+                btn.onclick = function() {
+                    const code = pre.querySelector('code').innerText;
+                    navigator.clipboard.writeText(code).then(() => {
+                        btn.innerHTML = '<i class="fas fa-check"></i>';
+                        setTimeout(() => btn.innerHTML = '<i class="far fa-copy"></i>', 2000);
+                    });
+                };
+                
+                pre.appendChild(btn);
+            });
+
             document.querySelectorAll('pre code').forEach(function(block) {
                 hljs.highlightElement(block);
             });
-            
-            // 恢复侧边栏状态
-            restoreSidebarState();
-            
-            // 自动滚动到当前活动项
-            scrollToActiveItem();
-        });
-
-        // 切换分组展开/折叠
-        function toggleSection(element) {
-            const sectionItems = element.nextElementSibling;
-            const sectionId = element.getAttribute('data-section');
-            
-            if (sectionItems.classList.contains('collapsed')) {
-                // 展开
-                sectionItems.classList.remove('collapsed');
-                element.classList.remove('collapsed');
-                sectionItems.style.maxHeight = (sectionItems.querySelectorAll('.nav-item').length * 40) + 'px';
-                localStorage.setItem('docs-sidebar-' + sectionId, 'expanded');
-            } else {
-                // 折叠
-                sectionItems.classList.add('collapsed');
-                element.classList.add('collapsed');
-                sectionItems.style.maxHeight = '0px';
-                localStorage.setItem('docs-sidebar-' + sectionId, 'collapsed');
-            }
-        }
-
-        // 恢复侧边栏折叠状态
-        function restoreSidebarState() {
-            document.querySelectorAll('.nav-section-items').forEach(section => {
-                const sectionId = section.getAttribute('data-section-id');
-                const savedState = localStorage.getItem('docs-sidebar-' + sectionId);
-                const header = section.previousElementSibling;
-                
-                if (savedState === 'expanded') {
-                    section.classList.remove('collapsed');
-                    header.classList.remove('collapsed');
-                    section.style.maxHeight = (section.querySelectorAll('.nav-item').length * 40) + 'px';
-                } else if (savedState === 'collapsed') {
-                    section.classList.add('collapsed');
-                    header.classList.add('collapsed');
-                    section.style.maxHeight = '0px';
-                }
-            });
-        }
-
-        // 滚动到当前活动项
-        function scrollToActiveItem() {
-            const activeItem = document.querySelector('.nav-item.active');
-            if (activeItem) {
-                setTimeout(() => {
-                    activeItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }, 100);
-            }
-        }
-
-        // 为标题添加锚点链接
-        document.querySelectorAll('.markdown-body h2, .markdown-body h3').forEach(heading => {
-            const id = heading.textContent.toLowerCase()
-                .replace(/[^a-z0-9\u4e00-\u9fa5]+/g, '-')
-                .replace(/^-|-$/g, '');
-            heading.id = id;
-            
-            heading.style.cursor = 'pointer';
-            heading.onclick = function() {
-                window.location.hash = id;
-                navigator.clipboard.writeText(window.location.href);
-            };
         });
     </script>
 

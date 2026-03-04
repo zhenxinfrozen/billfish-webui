@@ -139,9 +139,25 @@ body {
 /* 文件查看器样式 */
 .file-viewer {
     max-width: 100%;
-    max-height: 70vh;
+    max-height: 80vh;
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+.mt-4 {
+    margin-bottom: 1.5rem !important;
+
+    margin-top: 0rem !important;
+}
+.col-lg-8{
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.col-lg-4{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
 }
 
 /* 加载动画 */
@@ -164,22 +180,22 @@ body {
     .card-img-container {
         height: 120px;
     }
-    
+
     .file-overlay {
         opacity: 1;
         background: rgba(0, 0, 0, 0.5);
     }
-    
+
     .file-overlay .btn {
         transform: translateY(0);
         font-size: 0.75rem;
         padding: 0.25rem 0.5rem;
     }
-    
+
     .btn-group {
         flex-wrap: wrap;
     }
-    
+
     .btn-group .btn {
         flex: 1;
         min-width: 120px;
@@ -326,11 +342,11 @@ video::-webkit-media-controls {
         padding-left: 10px;
         padding-right: 10px;
     }
-    
+
     .card-body {
         padding: 1rem 0.75rem;
     }
-    
+
     .btn-group .btn {
         font-size: 0.875rem;
     }

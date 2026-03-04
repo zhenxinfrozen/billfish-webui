@@ -1,10 +1,23 @@
 # Billfish Web Manager
 
-一个功能强大的 Billfish 素材库 Web 管理系统，提供浏览、搜索、预览和管理 Billfish 资源库的完整解决方案。
+基于Billfish素材管理软件，弄的一个 Web 管理系统，提供浏览、搜索、预览和管理 Billfish 资源库的完整解决方案。
+
+所有数据更新和变动基于 Billfish 软件本身基于其数据库更新，添加新文件或修改现有文件，才会自动反映在 Web 管理系统中。
 
 [![Version](https://img.shields.io/badge/version-v0.0.1-blue.svg)](https://github.com/zhenxinfrozen/billfish-webui/releases)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-777BB4.svg)](https://www.php.net/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+
+## 项目截图
+![首页](demo-billfish/pics/UI short/Screenshot - 2026-03-04 -01.png)
+![文件浏览](demo-billfish/pics/UI short/Screenshot - 2026-03-04 -02.png)
+![图片媒体](demo-billfish/pics/UI short/Screenshot - 2026-03-04 -03.png)
+![图片媒体](demo-billfish/pics/UI short/Screenshot - 2026-03-04 -04.png)
+![视频媒体](demo-billfish/pics/UI short/Screenshot - 2026-03-04 -05.png)
+![工具中心](demo-billfish/pics/UI short/Screenshot - 2026-03-04 -06.png)
+![资源库选择](demo-billfish/pics/UI short/Screenshot - 2026-03-04 -07.png)
+![资源库添加](demo-billfish/pics/UI short/Screenshot - 2026-03-04 -08.png)
+![文档中心](demo-billfish/pics/UI short/Screenshot - 2026-03-04 -09.png)
 
 ## 🎯 核心特性
 
@@ -34,13 +47,13 @@
 数据源                     用途               存储方式
 ──────────────────────────────────────────────────────
 id_based_mapping.json      文件ID→路径映射     JSON (核心)
-complete_material_info.json 完整文件元数据     JSON (核心)  
+complete_material_info.json 完整文件元数据     JSON (核心)
 billfish.db                Billfish原生数据库  SQLite (可选,仅诊断)
 ```
 
 #### 技术栈
 - **后端**: PHP 8.2
-- **前端**: Bootstrap 5.1 + FontAwesome 6.0  
+- **前端**: Bootstrap 5.1 + FontAwesome 6.0
 - **Markdown**: Parsedown + highlight.js
 - **数据库**: SQLite3 (可选，仅诊断工具使用)
 
@@ -87,7 +100,7 @@ billfish.db                Billfish原生数据库  SQLite (可选,仅诊断)
 ### 环境要求
 
 - **PHP**: 7.4 或更高版本
-- **扩展**: 
+- **扩展**:
   - `sqlite3` (必需)
   - `json` (必需)
   - `mbstring` (推荐)
@@ -102,24 +115,24 @@ billfish.db                Billfish原生数据库  SQLite (可选,仅诊断)
    ```
 
 2. **配置路径**
-   
+
    编辑 `public/config.php` 文件，设置正确的 Billfish 资源库路径：
    ```php
    define('BILLFISH_PATH', '/path/to/your/billfish/library');
    ```
 
 3. **启动服务**
-   
+
    使用 PHP 内置服务器（开发环境）：
    ```bash
    cd public
    php -S localhost:8000
    ```
-   
+
    或配置 Apache/Nginx 虚拟主机指向 `public` 目录。
 
 4. **访问应用**
-   
+
    打开浏览器访问：`http://localhost:8000`
 
 ## 📖 使用指南
@@ -160,7 +173,7 @@ define('FILES_PER_PAGE', 24);
 
 **核心功能不需要SQLite!** 只有3个诊断工具使用：
 1. 系统健康检查
-2. 数据库浏览器  
+2. 数据库浏览器
 3. 预览图检查工具
 
 ##### Windows启用方法
@@ -180,7 +193,7 @@ cd public\tools\scripts
 sudo apt-get install php-sqlite3
 sudo systemctl restart php-fpm
 
-# CentOS/RHEL  
+# CentOS/RHEL
 sudo yum install php-sqlite3
 sudo systemctl restart php-fpm
 ```
@@ -226,7 +239,7 @@ sudo systemctl restart php-fpm
 ### 浏览器支持
 
 - Chrome 60+
-- Firefox 60+  
+- Firefox 60+
 - Safari 12+
 - Edge 79+
 
@@ -320,7 +333,7 @@ rzxme-billfish/
 #### 添加新的文件类型支持
 
 1. 在 `config.php` 中添加新的文件扩展名
-2. 在 `file-serve.php` 中添加对应的 MIME 类型  
+2. 在 `file-serve.php` 中添加对应的 MIME 类型
 3. 更新前端显示逻辑
 
 #### 自定义样式
@@ -369,7 +382,7 @@ rzxme-billfish/
 
 **重大更新**:
 - ✅ BillfishManagerV2 核心架构
-- 📚 完整的文档和工具系统  
+- 📚 完整的文档和工具系统
 - 🎨 专业Markdown渲染(Parsedown + highlight.js)
 - 🔧 3个Web诊断工具
 - 📊 完整元数据支持
@@ -377,7 +390,7 @@ rzxme-billfish/
 
 **技术架构**:
 - 🔥 **无SQLite依赖**: 核心功能使用JSON文件
-- ⚡ **高性能**: 直接文件读取，无SQL开销  
+- ⚡ **高性能**: 直接文件读取，无SQL开销
 - 🚀 **易部署**: VPS部署零依赖
 
 **功能清单**:

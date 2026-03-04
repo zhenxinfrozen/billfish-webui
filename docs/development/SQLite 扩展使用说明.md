@@ -1,4 +1,3 @@
-# SQLite 扩展使用说明
 
 本文档说明如何在 PHP 中使用 SQLite3 扩展来读取 Billfish 数据库。
 
