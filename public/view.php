@@ -41,7 +41,7 @@ include 'includes/header.php';
         }
         .file-viewer {
             width: 100%;
-            max-height: 70vh;
+            /* max-height: 70vh; */
             object-fit: contain;
         }
         .file-info-card {
@@ -66,8 +66,27 @@ include 'includes/header.php';
     </style>
 
 <div class="container mt-4">
+        <!-- 导航按钮 -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <a href="browse.php" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left"></i> 返回浏览
+                            </a>
+                            <div>
+                                <a href="search.php?q=<?= urlencode(pathinfo($file['name'], PATHINFO_FILENAME)) ?>" class="btn btn-outline-primary">
+                                    <i class="fas fa-search"></i> 搜索相似文件
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- 文件预览区域 -->
         <div class="row">
-            <!-- 文件预览区域 -->
             <div class="col-lg-8">
                 <div class="card">
                     <div class="card-body p-0">
@@ -75,8 +94,8 @@ include 'includes/header.php';
                             <div class="video-container">
                                 <?php if ($file['has_preview']): ?>
                                     <!-- 缩略图预览 -->
-                                    <img src="<?= $file['preview_url'] ?>" 
-                                         class="preview-img" 
+                                    <img src="<?= $file['preview_url'] ?>"
+                                         class="preview-img"
                                          id="videoPreview"
                                          alt="<?= htmlspecialchars($file['name']) ?>"
                                          style="cursor: pointer;">
@@ -187,9 +206,9 @@ include 'includes/header.php';
                         <div class="mb-3">
                             <strong><i class="fas fa-star"></i> 评分:</strong>
                             <div class="star-rating ms-2 d-inline-block">
-                                <?php 
+                                <?php
                                 $score = isset($file['score']) ? intval($file['score']) : 0;
-                                for ($i = 1; $i <= 5; $i++): 
+                                for ($i = 1; $i <= 5; $i++):
                                 ?>
                                     <i class="fas fa-star<?= $i <= $score ? '' : '-o' ?><?= $i <= $score ? '' : ' text-muted' ?>"></i>
                                 <?php endfor; ?>
@@ -230,7 +249,7 @@ include 'includes/header.php';
                                 <?php endif; ?>
                             </div>
                         </div>
-                        
+
                         <!-- 颜色信息 -->
                         <?php if (!empty($file['colors']) && count($file['colors']) > 0): ?>
                         <div class="mt-3">
@@ -238,7 +257,7 @@ include 'includes/header.php';
                             <div class="mt-2 d-flex flex-wrap gap-1">
                                 <?php foreach (array_slice($file['colors'], 0, 8) as $colorInfo): ?>
                                     <div class="d-flex align-items-center me-2 mb-1">
-                                        <div class="color-swatch me-1" 
+                                        <div class="color-swatch me-1"
                                              style="width: 20px; height: 20px; background-color: <?= $colorInfo['color'] ?>; border: 1px solid #ccc; border-radius: 3px;"
                                              title="<?= $colorInfo['color'] ?> (<?= number_format($colorInfo['percentage'], 1) ?>%)">
                                         </div>
@@ -248,7 +267,7 @@ include 'includes/header.php';
                             </div>
                         </div>
                         <?php endif; ?>
-                        
+
                         <!-- 额外信息 -->
                         <?php if (!empty($file['comments_summary']) || $file['comments_count'] > 0): ?>
                         <div class="mt-3">
@@ -305,26 +324,6 @@ include 'includes/header.php';
                 <?php endif; ?>
             </div>
         </div>
-
-        <!-- 导航按钮 -->
-        <div class="row mt-4">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between">
-                            <a href="browse.php" class="btn btn-outline-secondary">
-                                <i class="fas fa-arrow-left"></i> 返回浏览
-                            </a>
-                            <div>
-                                <a href="search.php?q=<?= urlencode(pathinfo($file['name'], PATHINFO_FILENAME)) ?>" class="btn btn-outline-primary">
-                                    <i class="fas fa-search"></i> 搜索相似文件
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -336,9 +335,9 @@ include 'includes/header.php';
             const preview = document.getElementById('videoPreview');
             const player = document.getElementById('videoPlayer');
             const playButton = preview?.nextElementSibling;
-            
+
             console.log('Elements:', { preview, player, playButton });
-            
+
             if (preview) {
                 preview.style.display = 'none';
             }
@@ -361,13 +360,13 @@ include 'includes/header.php';
         document.addEventListener('DOMContentLoaded', function() {
             const preview = document.getElementById('videoPreview');
             const player = document.getElementById('videoPlayer');
-            
+
             console.log('DOM loaded:', { hasPreview: !!preview, hasPlayer: !!player });
-            
+
             if (!preview && player) {
                 player.style.display = 'block';
             }
-            
+
             // 添加视频事件监听
             if (player) {
                 player.addEventListener('loadstart', () => console.log('Video: loadstart'));

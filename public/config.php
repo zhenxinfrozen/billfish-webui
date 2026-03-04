@@ -3,27 +3,35 @@
  * Billfish Web Manager 配置文件
  */
 
-// 获取当前Git分支名称
-function getCurrentGitBranch() {
-    $branch = 'unknown';
-    if (function_exists('exec')) {
+// 获取版本信息
+function getVersion() {
+    // 【重要】发布版本时，请手动更新此版本号
+    // 例如发布 v0.2.0 时，将下面改为 'v0.2.0'
+    $staticVersion = 'v0.1.0';
+    
+    // 开发环境：如果在Git仓库中，显示动态版本信息
+    if (function_exists('exec') && is_dir(__DIR__ . '/../.git')) {
         $output = [];
         $returnCode = 0;
-        exec('git rev-parse --abbrev-ref HEAD 2>nul', $output, $returnCode);
+        
+        // 获取最近的标签和提交信息
+        exec('git describe --tags --always 2>nul', $output, $returnCode);
         if ($returnCode === 0 && !empty($output)) {
-            $branch = trim($output[0]);
+            $version = trim($output[0]);
+            return $version; // 返回如: v0.1.0 或 v0.1.0-5-ga3b2c1d
         }
     }
-    return $branch;
+    
+    // 生产环境：使用静态版本号
+    return $staticVersion;
 }
 
-// 版本信息 - 动态读取Git分支
-$currentBranch = getCurrentGitBranch();
-define('BILLFISH_WEB_VERSION', 'Git-' . $currentBranch);
+// 版本信息
+define('BILLFISH_WEB_VERSION', getVersion());
 define('BILLFISH_WEB_BUILD_DATE', date('Y-m-d'));
 
 // Billfish 资源库路径
-define('BILLFISH_PATH', __DIR__ . '/assets/viedeos/rzxme-billfish');
+define('BILLFISH_PATH', 'D:/VS CODE/rzxme-billfish/demo-billfish');
 
 // 数据库路径
 define('BILLFISH_DB', BILLFISH_PATH . '\.bf\billfish.db');
