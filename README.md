@@ -9,15 +9,56 @@
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 ## 项目截图
-![首页](demo-billfish/pics/UI short/Screenshot - 2026-03-04 -01.png)
-![文件浏览](demo-billfish/pics/UI short/Screenshot - 2026-03-04 -02.png)
-![图片媒体](demo-billfish/pics/UI short/Screenshot - 2026-03-04 -03.png)
-![图片媒体](demo-billfish/pics/UI short/Screenshot - 2026-03-04 -04.png)
-![视频媒体](demo-billfish/pics/UI short/Screenshot - 2026-03-04 -05.png)
-![工具中心](demo-billfish/pics/UI short/Screenshot - 2026-03-04 -06.png)
-![资源库选择](demo-billfish/pics/UI short/Screenshot - 2026-03-04 -07.png)
-![资源库添加](demo-billfish/pics/UI short/Screenshot - 2026-03-04 -08.png)
-![文档中心](demo-billfish/pics/UI short/Screenshot - 2026-03-04 -09.png)
+
+<table width="100%">
+  <tr>
+    <td width="50%" align="center">
+      <b>首页</b><br>
+      <img src="demo-billfish/pics/UI-short/Screenshot-2026-03-04-01.png" width="100%">
+    </td>
+    <td width="50%" align="center">
+      <b>文件浏览</b><br>
+      <img src="demo-billfish/pics/UI-short/Screenshot-2026-03-04-02.png" width="100%">
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <b>图片媒体</b><br>
+      <img src="demo-billfish/pics/UI-short/Screenshot-2026-03-04-03.png" width="100%">
+    </td>
+    <td align="center">
+      <b>图片媒体 (详情)</b><br>
+      <img src="demo-billfish/pics/UI-short/Screenshot-2026-03-04-04.png" width="100%">
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <b>视频媒体</b><br>
+      <img src="demo-billfish/pics/UI-short/Screenshot-2026-03-04-05.png" width="100%">
+    </td>
+    <td align="center">
+      <b>工具中心</b><br>
+      <img src="demo-billfish/pics/UI-short/Screenshot-2026-03-04-06.png" width="100%">
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <b>资源库选择</b><br>
+      <img src="demo-billfish/pics/UI-short/Screenshot-2026-03-04-07.png" width="100%">
+    </td>
+    <td align="center">
+      <b>资源库添加</b><br>
+      <img src="demo-billfish/pics/UI-short/Screenshot-2026-03-04-08.png" width="100%">
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <b>文档中心</b><br>
+      <img src="demo-billfish/pics/UI-short/Screenshot-2026-03-04-09.png" width="100%">
+    </td>
+    <td></td>
+  </tr>
+</table>
 
 ## 🎯 核心特性
 
