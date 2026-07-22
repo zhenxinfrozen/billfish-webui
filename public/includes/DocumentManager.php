@@ -4,20 +4,24 @@
  */
 
 class DocumentManager {
-    private $docsPath;
-    private $config;
-    private $repoRoot;
+    private string $docsPath;
+    private array $config = [];
+    private string $repoRoot;
 
-    public function __construct($docsPath = null) {
-        $this->docsPath = $docsPath ?? realpath(__DIR__ . '/../../docs');
-        $this->repoRoot = realpath(__DIR__ . '/../..');
+    public function __construct(?string $docsPath = null) {
+        $resolvedDocsPath = $docsPath ?? realpath(__DIR__ . '/../../docs');
+        $resolvedRepoRoot = realpath(__DIR__ . '/../..');
+
+        // realpath 失败时回退到可用的绝对路径字符串，避免类型错误
+        $this->docsPath = $resolvedDocsPath !== false ? $resolvedDocsPath : __DIR__ . '/../../docs';
+        $this->repoRoot = $resolvedRepoRoot !== false ? $resolvedRepoRoot : __DIR__ . '/../..';
         $this->loadConfig();
     }
 
     /**
      * 加载文档配置
      */
-    private function loadConfig() {
+    private function loadConfig(): void {
         $configFile = $this->docsPath . '/config.json';
         if (file_exists($configFile)) {
             $this->config = json_decode(file_get_contents($configFile), true);
@@ -41,13 +45,13 @@ class DocumentManager {
     /**
      * 获取所有文档分类
      */
-    public function getSections() {
+    public function getSections(): array {
         $sections = $this->config['sections'] ?? [];
 
         // 动态扫描文件夹，自动发现新文档
         $sections = $this->mergeDynamicSections($sections);
 
-        usort($sections, function($a, $b) {
+        usort($sections, function(array $a, array $b): int {
             return ($a['order'] ?? 0) <=> ($b['order'] ?? 0);
         });
         return $sections;
@@ -56,7 +60,7 @@ class DocumentManager {
     /**
      * 动态扫描文档目录，合并发现的文档
      */
-    private function mergeDynamicSections($configSections) {
+    private function mergeDynamicSections(array $configSections): array {
         // 1. 首先扫描docs根目录下的markdown文件（作为"概览"或"通用"部分）
         $rootMarkdownFiles = glob($this->docsPath . '/*.md');
         if (!empty($rootMarkdownFiles)) {
@@ -149,7 +153,7 @@ class DocumentManager {
     /**
      * 解析markdown文件获取元数据
      */
-    private function parseMarkdownFile($filePath, $fileName, $sourceDir = '') {
+    private function parseMarkdownFile(string $filePath, string $fileName, string $sourceDir = ''): array {
         $content = @file_get_contents($filePath);
         if ($content === false) {
             $content = '';
@@ -175,7 +179,7 @@ class DocumentManager {
     /**
      * 从markdown内容中提取标题
      */
-    private function extractTitle($content) {
+    private function extractTitle(string $content): ?string {
         // 查找第一个H1标题
         if (preg_match('/^#\s+(.+)$/m', $content, $matches)) {
             return trim($matches[1]);
@@ -192,7 +196,7 @@ class DocumentManager {
     /**
      * 从markdown内容中提取描述
      */
-    private function extractDescription($content) {
+    private function extractDescription(string $content): string {
         // 移除标题行
         $lines = explode("\n", $content);
         $description = '';
@@ -219,7 +223,7 @@ class DocumentManager {
     /**
      * 合并配置文档和动态发现的文档
      */
-    private function mergeDocuments($configDocs, $dynamicDocs) {
+    private function mergeDocuments(array $configDocs, array $dynamicDocs): array {
         $merged = $configDocs;
 
         foreach ($dynamicDocs as $dynamicDoc) {
@@ -242,7 +246,7 @@ class DocumentManager {
     /**
      * 创建动态section
      */
-    private function createDynamicSection($sectionId, $documents) {
+    private function createDynamicSection(string $sectionId, array $documents): array {
         // 根据目录名生成友好名称
         $sectionNames = [
             'development' => ['开发文档', '🔧'],
@@ -274,7 +278,11 @@ class DocumentManager {
     /**
      * 获取指定分类
      */
-    public function getSection($sectionId) {
+    public function getSection(?string $sectionId): ?array {
+        if (empty($sectionId)) {
+            return null;
+        }
+
         foreach ($this->getSections() as $section) {
             if ($section['id'] === $sectionId) {
                 return $section;
@@ -286,7 +294,11 @@ class DocumentManager {
     /**
      * 获取文档内容
      */
-    public function getDocument($sectionId, $fileName) {
+    public function getDocument(?string $sectionId, ?string $fileName): ?array {
+        if (empty($sectionId) || empty($fileName)) {
+            return null;
+        }
+
         $section = $this->getSection($sectionId);
         if (!$section) {
             return null;
@@ -331,7 +343,7 @@ class DocumentManager {
     /**
      * 搜索文档
      */
-    public function searchDocuments($query) {
+    public function searchDocuments(string $query): array {
         $results = [];
 
         foreach ($this->getSections() as $section) {
@@ -371,7 +383,7 @@ class DocumentManager {
     /**
      * 获取内容预览
      */
-    private function getContentPreview($content, $query, $length = 200) {
+    private function getContentPreview(string $content, string $query, int $length = 200): string {
         $pos = stripos($content, $query);
         if ($pos === false) {
             return mb_substr($content, 0, $length) . '...';
@@ -385,7 +397,7 @@ class DocumentManager {
     /**
      * 渲染Markdown为HTML
      */
-    public function renderMarkdown($markdown, $documentPath = null) {
+    public function renderMarkdown(string $markdown, ?string $documentPath = null): string {
         // 使用Parsedown库
         require_once __DIR__ . '/Parsedown.php';
         $parsedown = new Parsedown();
@@ -402,11 +414,11 @@ class DocumentManager {
     /**
      * 重写文档中的相对资源路径，避免图片在Web根目录下404
      */
-    private function rewriteAssetUrls($html, $documentPath) {
+    private function rewriteAssetUrls(string $html, string $documentPath): string {
         $docDir = dirname($documentPath);
         $pattern = '/(<img\\b[^>]*\\bsrc=["\'])([^"\']+)(["\'][^>]*>)/i';
 
-        return preg_replace_callback($pattern, function($matches) use ($docDir) {
+        return preg_replace_callback($pattern, function(array $matches) use ($docDir): string {
             $prefix = $matches[1];
             $src = $matches[2];
             $suffix = $matches[3];
@@ -423,7 +435,7 @@ class DocumentManager {
     /**
      * 解析图片相对路径，映射到 docs-asset.php 进行安全访问
      */
-    private function resolveAssetUrl($src, $docDir) {
+    private function resolveAssetUrl(string $src, string $docDir): string {
         $parts = parse_url($src);
         $relativePath = $parts['path'] ?? $src;
 
@@ -451,10 +463,14 @@ class DocumentManager {
     /**
      * 获取面包屑导航
      */
-    public function getBreadcrumbs($sectionId, $fileName = null) {
+    public function getBreadcrumbs(?string $sectionId, ?string $fileName = null): array {
         $breadcrumbs = [
             ['name' => '文档首页', 'url' => 'docs-ui.php']
         ];
+
+        if (empty($sectionId)) {
+            return $breadcrumbs;
+        }
 
         $section = $this->getSection($sectionId);
         if ($section) {

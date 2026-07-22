@@ -5,6 +5,17 @@ body {
     background-color: #f8f9fa;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     padding-top: 56px; /* 为固定导航栏留出空间 */
+    padding-bottom: 52px; /* 为固定页脚留出空间 */
+}
+
+.site-footer {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1029;
+    border-top: 1px solid #dee2e6;
+    background-color: #f8f9fa;
 }
 
 /* 导航栏 */

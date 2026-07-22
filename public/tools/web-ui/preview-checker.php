@@ -16,6 +16,7 @@ $total = 0;
 $withPreview = 0;
 $missing = 0;
 $coverage = 0;
+$checkAll = false;
 
 if (!$sqlite_available) {
     $error_message = 'SQLite3 扩展未启用。请在 php.ini 中启用 extension=sqlite3';
@@ -28,15 +29,15 @@ if (!$sqlite_available) {
 
         // 获取文件列表
         $result = $db->query("
-            SELECT f.id, f.name, t.name as type_name 
-            FROM bf_file f 
-            LEFT JOIN bf_type t ON f.tid = t.id 
+            SELECT f.id, f.name, t.name as type_name
+            FROM bf_file f
+            LEFT JOIN bf_type t ON f.tid = t.id
             LIMIT {$limit}
         ");
         while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
             $hexFolder = substr(str_pad(dechex($row['id']), 4, '0', STR_PAD_LEFT), -2);
             $previewPath = BILLFISH_PATH . "/.bf/.preview/{$hexFolder}/{$row['id']}.small.webp";
-            
+
             $files[] = [
                 'id' => $row['id'],
                 'name' => $row['name'],
@@ -155,7 +156,7 @@ if (!$sqlite_available) {
                 <i class="fas fa-undo"></i> 返回快速检查 (50个)
             </a>
             <?php endif; ?>
-            
+
             <button class="btn btn-outline-secondary" onclick="filterFiles('missing')">
                 <i class="fas fa-filter"></i> 只显示缺失
             </button>
@@ -174,14 +175,14 @@ if (!$sqlite_available) {
             </div>
             <div class="card-body p-0" style="max-height: 600px; overflow-y: auto;">
                 <?php foreach ($files as $file): ?>
-                <div class="file-row d-flex align-items-center justify-content-between" 
+                <div class="file-row d-flex align-items-center justify-content-between"
                      data-status="<?= $file['preview_exists'] ? 'exists' : 'missing' ?>">
                     <div class="d-flex align-items-center flex-grow-1">
                         <!-- 预览图 -->
                         <div class="me-3">
                             <?php if ($file['preview_exists']): ?>
-                            <img src="../../preview.php?path=.preview/<?= $file['hex_folder'] ?>/<?= $file['id'] ?>.small.webp" 
-                                 class="preview-thumb" 
+                               <img src="../../preview.php?id=<?= urlencode((string)$file['id']) ?>"
+                                 class="preview-thumb"
                                  alt="预览图">
                             <?php else: ?>
                             <div class="preview-thumb bg-secondary d-flex align-items-center justify-content-center">
@@ -189,7 +190,7 @@ if (!$sqlite_available) {
                             </div>
                             <?php endif; ?>
                         </div>
-                        
+
                         <!-- 文件信息 -->
                         <div class="flex-grow-1 file-info">
                             <div class="mb-1">
@@ -197,11 +198,11 @@ if (!$sqlite_available) {
                                 <span class="badge bg-secondary ms-2"><?= strtoupper($file['type']) ?></span>
                             </div>
                             <small class="text-muted">
-                                ID: <code><?= $file['id'] ?></code> · 
+                                ID: <code><?= $file['id'] ?></code> ·
                                 十六进制文件夹: <code><?= $file['hex_folder'] ?></code>
                             </small>
                         </div>
-                        
+
                         <!-- 状态 -->
                         <div>
                             <?php if ($file['preview_exists']): ?>

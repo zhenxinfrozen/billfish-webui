@@ -4,13 +4,11 @@
     <?php if (isset($extraJs)) echo $extraJs; ?>
 
     <!-- 版本信息 -->
-    <footer class="bg-light text-center py-3 mt-5">
+    <footer class="site-footer bg-light text-center py-2">
         <small class="text-muted">
             Billfish Web Manager <?php echo defined('BILLFISH_WEB_VERSION') ? BILLFISH_WEB_VERSION : '0.1.2'; ?>
             | Build <?php echo defined('BILLFISH_WEB_BUILD_DATE') ? BILLFISH_WEB_BUILD_DATE : '2025-10-15'; ?>
-            | <a href="/docs-ui.php">文档</a>
-            | <a href="https://rzx.me">rzx.me</a>
-            | <a href="/database-health.php">健康检查</a>
+            | <a href="https://rzx.me" target="_blank" rel="noopener noreferrer">rzx.me</a>
         </small>
     </footer>
 </body>

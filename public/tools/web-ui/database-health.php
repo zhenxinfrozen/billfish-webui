@@ -10,12 +10,15 @@ require_once '../../includes/DatabaseHealthChecker.php';
 
 $currentPage = 'tools-ui.php';
 $pageTitle = '数据库健康报告';
+$isDeepCheck = isset($_GET['deep']) && $_GET['deep'] === '1';
+$results = [];
+$errorMessage = '';
+$hasError = false;
 
 // 执行健康检查
 try {
     $checker = new DatabaseHealthChecker(BILLFISH_PATH);
-    $results = $checker->runFullCheck();
-    $hasError = false;
+    $results = $checker->runFullCheck($isDeepCheck);
 } catch (Exception $e) {
     $hasError = true;
     $errorMessage = $e->getMessage();
@@ -67,11 +70,28 @@ include '../../includes/header.php';
                 <a href="/tools-ui.php" class="btn btn-outline-secondary me-2">
                     <i class="fas fa-arrow-left"></i> 返回工具中心
                 </a>
-                <button class="btn btn-primary" onclick="location.reload()">
+                <?php if (!$isDeepCheck): ?>
+                <a href="?deep=1" class="btn btn-outline-warning me-2">
+                    <i class="fas fa-microscope"></i> 深度检查
+                </a>
+                <?php else: ?>
+                <a href="?" class="btn btn-outline-info me-2">
+                    <i class="fas fa-bolt"></i> 返回快速检查
+                </a>
+                <?php endif; ?>
+                <button class="btn btn-primary" onclick="window.location.href='<?= $isDeepCheck ? '?deep=1' : '?' ?>'">
                     <i class="fas fa-sync-alt"></i> 刷新检查
                 </button>
             </div>
         </div>
+
+        <?php if (!$hasError): ?>
+        <div class="alert alert-<?= $isDeepCheck ? 'warning' : 'success' ?> py-2">
+            <i class="fas <?= $isDeepCheck ? 'fa-microscope' : 'fa-bolt' ?>"></i>
+            当前模式：<strong><?= $isDeepCheck ? '深度检查' : '快速检查' ?></strong>
+            （<?= $isDeepCheck ? '包含孤立记录扫描，耗时更长' : '跳过耗时扫描，优先响应速度' ?>）
+        </div>
+        <?php endif; ?>
 
         <?php if ($hasError): ?>
             <div class="alert alert-danger">
@@ -79,7 +99,7 @@ include '../../includes/header.php';
                 <p class="mb-0"><?= htmlspecialchars($errorMessage) ?></p>
             </div>
         <?php else: ?>
-            
+
             <!-- 总览卡片 -->
             <div class="row mb-4">
                 <div class="col-md-3">
@@ -136,11 +156,11 @@ include '../../includes/header.php';
                         <div class="card-body">
                             <p class="mb-3"><?= htmlspecialchars($results['connection']['message']) ?></p>
                             <div class="detail-item">
-                                <strong>SQLite版本:</strong> 
+                                <strong>SQLite版本:</strong>
                                 <?= htmlspecialchars($results['connection']['details']['sqlite_version'] ?? 'N/A') ?>
                             </div>
                             <div class="detail-item">
-                                <strong>扩展加载:</strong> 
+                                <strong>扩展加载:</strong>
                                 <?= $results['connection']['details']['extension_loaded'] ? '✅ 已加载' : '❌ 未加载' ?>
                             </div>
                         </div>
@@ -168,7 +188,7 @@ include '../../includes/header.php';
                             </div>
                             <?php if (!empty($results['tables']['details']['missing_tables'])): ?>
                                 <div class="detail-item text-warning">
-                                    <strong>缺失表:</strong> 
+                                    <strong>缺失表:</strong>
                                     <?= implode(', ', $results['tables']['details']['missing_tables']) ?>
                                 </div>
                             <?php endif; ?>
@@ -225,7 +245,7 @@ include '../../includes/header.php';
                             </div>
                             <div class="detail-item">
                                 <small class="text-muted">
-                                    <i class="fas fa-info-circle"></i> 
+                                    <i class="fas fa-info-circle"></i>
                                     <?= htmlspecialchars($results['file_access']['details']['note'] ?? '') ?>
                                 </small>
                             </div>
@@ -250,12 +270,12 @@ include '../../includes/header.php';
                                 <strong>文件记录数:</strong> <?= number_format($results['preview_coverage']['details']['total_files'] ?? 0) ?>
                             </div>
                             <div class="detail-item">
-                                <strong>预览目录:</strong> 
+                                <strong>预览目录:</strong>
                                 <?= $results['preview_coverage']['details']['preview_exists'] ? '✅ 存在' : '❌ 不存在' ?>
                             </div>
                             <div class="detail-item">
                                 <small class="text-muted">
-                                    <i class="fas fa-info-circle"></i> 
+                                    <i class="fas fa-info-circle"></i>
                                     <?= htmlspecialchars($results['preview_coverage']['details']['note'] ?? '') ?>
                                 </small>
                             </div>
@@ -308,7 +328,7 @@ include '../../includes/header.php';
                                 <strong>距今:</strong> <?= $results['last_sync']['hours_ago'] ?? 0 ?> 小时
                             </div>
                             <div class="detail-item">
-                                <strong>状态:</strong> 
+                                <strong>状态:</strong>
                                 <span class="badge bg-<?= $results['last_sync']['status'] === 'recent' ? 'success' : ($results['last_sync']['status'] === 'today' ? 'info' : 'secondary') ?>">
                                     <?= $results['last_sync']['status'] === 'recent' ? '最近更新' : ($results['last_sync']['status'] === 'today' ? '今日更新' : '较早更新') ?>
                                 </span>
