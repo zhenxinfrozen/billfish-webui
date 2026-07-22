@@ -8,6 +8,19 @@
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-777BB4.svg)](https://www.php.net/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
+## 文档地图
+
+| 分类 | 入口文档 | 说明 |
+|---|---|---|
+| 项目文档 | [README](README.md) | 项目总览与功能说明 |
+| 入门指南 | [getting-started/README](getting-started/README.md) | 快速上手与基础配置 |
+| 用户指南 | [guides/README](guides/README.md) | 日常使用向操作说明 |
+| 开发文档 | [development/README](development/README.md) | 架构、数据库、开发协作 |
+| API参考 | [api/README](api/README.md) | 接口说明与调用参考 |
+| 安装配置 | [setup/README](setup/README.md) | 环境安装、部署、挂载 |
+| 版本说明 | [release-notes/README](release-notes/README.md) | 更新日志与版本记录 |
+| 故障排除 | [troubleshooting/README](troubleshooting/README.md) | 常见问题与修复方案 |
+
 ## 项目截图
 
 <table width="100%">
@@ -239,7 +252,7 @@ sudo yum install php-sqlite3
 sudo systemctl restart php-fpm
 ```
 
-详情: [SQLite扩展安装完成文档](public/docs/setup/sqlite-installation-complete.md)
+详情: [SQLite扩展安装完成文档](setup/sqlite-installation-complete.md)
 
 ### 数据库配置
 
@@ -461,7 +474,7 @@ rzxme-billfish/
 - [ ] RESTful API 扩展
 - [ ] 多语言支持
 
-详细更新记录请查看: [CHANGELOG.md](public/docs/release-notes/changelog.md)
+详细更新记录请查看: [CHANGELOG.md](release-notes/changelog.md)
 
 ## 🤝 贡献指南
 
@@ -475,7 +488,7 @@ rzxme-billfish/
 
 ## 📄 开源协议
 
-本项目采用 [MIT 协议](LICENSE) 开源。
+本项目采用 MIT 协议开源。
 
 ## 🙏 致谢
 
