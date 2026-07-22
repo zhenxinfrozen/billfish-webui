@@ -13,7 +13,7 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top" style="z-index: 1030;">
         <div class="container">
             <a class="navbar-brand" href="/index.php">
-                <i class="fas fa-fish"></i> Billfish Web Manager 
+                <i class="fas fa-fish"></i> Billfish Web Manager
                 <span class="badge bg-secondary"><?php echo defined('BILLFISH_WEB_VERSION') ? BILLFISH_WEB_VERSION : '0.1.1'; ?></span>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">

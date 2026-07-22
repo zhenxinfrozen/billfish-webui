@@ -50,27 +50,27 @@ CREATE TABLE bf_material_v2 (
 
 **获取所有未删除的素材**：
 ```sql
-SELECT * FROM bf_material_v2 
-WHERE isDeleted = 0 
+SELECT * FROM bf_material_v2
+WHERE isDeleted = 0
 ORDER BY createTime DESC;
 ```
 
 **按文件夹查询**：
 ```sql
-SELECT * FROM bf_material_v2 
+SELECT * FROM bf_material_v2
 WHERE folderId = 123 AND isDeleted = 0;
 ```
 
 **搜索文件名**：
 ```sql
-SELECT * FROM bf_material_v2 
-WHERE name LIKE '%关键词%' AND isDeleted = 0 
+SELECT * FROM bf_material_v2
+WHERE name LIKE '%关键词%' AND isDeleted = 0
 LIMIT 20;
 ```
 
 **按评分筛选**：
 ```sql
-SELECT * FROM bf_material_v2 
+SELECT * FROM bf_material_v2
 WHERE score >= 3 AND isDeleted = 0;
 ```
 
@@ -97,13 +97,13 @@ CREATE TABLE bf_folder (
 
 **获取根文件夹**：
 ```sql
-SELECT * FROM bf_folder 
+SELECT * FROM bf_folder
 WHERE parentId = 0 AND isDeleted = 0;
 ```
 
 **获取子文件夹**：
 ```sql
-SELECT * FROM bf_folder 
+SELECT * FROM bf_folder
 WHERE parentId = 123 AND isDeleted = 0;
 ```
 
@@ -155,7 +155,7 @@ CREATE TABLE bf_material_tag (
 
 **获取素材的所有标签**：
 ```sql
-SELECT t.* 
+SELECT t.*
 FROM bf_tag t
 JOIN bf_material_tag mt ON t.id = mt.tagId
 WHERE mt.materialId = 123;
@@ -163,7 +163,7 @@ WHERE mt.materialId = 123;
 
 **获取带有特定标签的素材**：
 ```sql
-SELECT m.* 
+SELECT m.*
 FROM bf_material_v2 m
 JOIN bf_material_tag mt ON m.id = mt.materialId
 WHERE mt.tagId = 456 AND m.isDeleted = 0;
@@ -229,7 +229,7 @@ $dateTime = date('Y-m-d H:i:s', $createTime / 1000);
 ### 1. 获取带标签和文件夹信息的素材
 
 ```sql
-SELECT 
+SELECT
     m.*,
     f.name as folder_name,
     GROUP_CONCAT(t.name) as tags
@@ -245,7 +245,7 @@ LIMIT 20;
 ### 2. 统计每个文件夹的素材数量
 
 ```sql
-SELECT 
+SELECT
     f.id,
     f.name,
     COUNT(m.id) as material_count
@@ -279,40 +279,40 @@ ORDER BY score DESC, createTime DESC;
 ```php
 class BillfishManagerV3 {
     private $db;
-    
+
     public function __construct($billfishPath) {
         $dbFile = $this->findDatabase($billfishPath);
         $this->db = new PDO("sqlite:$dbFile");
         $this->db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     }
-    
+
     // 获取文件列表
     public function getFiles($options = []) {
         $sql = "SELECT * FROM bf_material_v2 WHERE isDeleted = 0";
-        
+
         // 添加文件夹过滤
         if (isset($options['folderId'])) {
             $sql .= " AND folderId = :folderId";
         }
-        
+
         // 添加搜索
         if (isset($options['search'])) {
             $sql .= " AND name LIKE :search";
         }
-        
+
         // 排序
         $sql .= " ORDER BY createTime DESC";
-        
+
         // 分页
         $sql .= " LIMIT :limit OFFSET :offset";
-        
+
         $stmt = $this->db->prepare($sql);
         // 绑定参数...
         $stmt->execute();
-        
+
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
-    
+
     // 获取单个文件
     public function getFileById($id) {
         $stmt = $this->db->prepare(
@@ -321,12 +321,12 @@ class BillfishManagerV3 {
         $stmt->execute(['id' => $id]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
-    
+
     // 搜索文件
     public function searchFiles($query) {
         $stmt = $this->db->prepare(
-            "SELECT * FROM bf_material_v2 
-             WHERE name LIKE :query AND isDeleted = 0 
+            "SELECT * FROM bf_material_v2
+             WHERE name LIKE :query AND isDeleted = 0
              LIMIT 50"
         );
         $stmt->execute(['query' => "%$query%"]);
@@ -406,11 +406,10 @@ sqlite3 /path/to/database.bf3
 
 ## 相关文档
 
-- [SQLite 使用说明](SQLite%20扩展使用说明.md)
+- [SQLite 使用说明](SQLite 扩展使用说明.md)
 - [开发指南](README.md)
 - [系统架构](系统架构总结.md)
 
 ---
 
 **警告**：仅用于读取数据，不要修改 Billfish 数据库，可能导致数据损坏或功能异常。
-

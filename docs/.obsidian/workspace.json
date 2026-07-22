@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "development/version-management.md",
+                "file": "vps-mount-nas-webdav.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "version-management"
+              "title": "vps-mount-nas-webdav"
             }
           }
         ]
@@ -184,5 +184,10 @@
     }
   },
   "active": "ec24f51bf636ac12",
-  "lastOpenFiles": []
+  "lastOpenFiles": [
+    "VPS-FFMPEG-DEPLOYMENT.md",
+    "rzx.me-billfish_视频缩略图方案对比FFmpeg-GD.md",
+    "rzx.me-billfish_VIDEO-THUMBNAIL-FFmpeg提取.md",
+    "development/version-management.md"
+  ]
 }

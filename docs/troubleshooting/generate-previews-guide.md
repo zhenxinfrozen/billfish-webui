@@ -293,9 +293,9 @@ du -sh {资源库路径}/.preview
 
 ## 相关文档
 
-- [预览图缺失问题](troubleshooting/preview-missing.md)
-- [快速开始](getting-started/quick-start.md)
-- [资源库配置](getting-started/library-configuration.md)
+- [预览图缺失问题](preview-missing.md)
+- [快速开始](../getting-started/quick-start.md)
+- [资源库配置](../getting-started/library-configuration.md)
 
 ---
 
