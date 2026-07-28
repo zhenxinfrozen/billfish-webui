@@ -1,5 +1,5 @@
 {
-    "updated_at": "2025-11-16 23:22:21",
+    "updated_at": "2026-07-28 11:11:33",
     "libraries": [
         {
             "id": "68efe4ccd9ad9",
@@ -65,15 +65,6 @@
             "created_at": "2025-10-17 01:43:21"
         },
         {
-            "id": "68f14150039d5",
-            "name": "开发测试Billfish库",
-            "type": "project",
-            "path": ".\/assets\/viedeos\/rzxme-billfish",
-            "original_path": "assets\/viedeos\/rzxme-billfish",
-            "description": "项目文档内开发测试Billfish库",
-            "created_at": "2025-10-17 03:02:40"
-        },
-        {
             "id": "6919ec1e5df71",
             "name": "项目外本地简单测试库",
             "type": "computer",
@@ -81,6 +72,24 @@
             "original_path": "D:\/VS CODE\/rzxme-billfish\/demo-billfish",
             "description": "public外资源库",
             "created_at": "2025-11-16 23:22:06"
+        },
+        {
+            "id": "6a68199662689",
+            "name": "asdfasdfsdaf",
+            "type": "project",
+            "path": ".\/demo-billfish",
+            "original_path": "demo-billfish",
+            "description": "项目内目录-test-new-config",
+            "created_at": "2026-07-28 10:53:10"
+        },
+        {
+            "id": "6a681a7d1e2a4",
+            "name": "开发测试Billfish库-new",
+            "type": "project",
+            "path": ".\/public\/assets\/viedeos\/rzxme-billfish",
+            "original_path": "public\/assets\/viedeos\/rzxme-billfish",
+            "description": "项目文档内开发测试Billfish库",
+            "created_at": "2026-07-28 10:57:01"
         }
     ]
 }
