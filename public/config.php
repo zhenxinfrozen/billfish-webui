@@ -3,26 +3,37 @@
  * Billfish Web Manager 配置文件
  */
 
-// 获取版本信息
+// 获取版本信息（智能自适应）
 function getVersion() {
-    // 【重要】发布版本时，请手动更新此版本号
-    // 例如发布 v0.2.0 时，将下面改为 'v0.2.0'
+    // 静态保底版本号（当完全没有 Git 环境时使用）
     $staticVersion = 'v0.1.0';
-    
-    // 开发环境：如果在Git仓库中，显示动态版本信息
-    if (function_exists('exec') && is_dir(__DIR__ . '/../.git')) {
-        $output = [];
-        $returnCode = 0;
-        
-        // 获取最近的标签和提交信息
-        exec('git describe --tags --always 2>nul', $output, $returnCode);
-        if ($returnCode === 0 && !empty($output)) {
-            $version = trim($output[0]);
-            return $version; // 返回如: v0.1.0 或 v0.1.0-5-ga3b2c1d
-        }
+
+    // 如果没有 exec 执行权限或不存在 .git 目录，直接返回静态版本
+    if (!function_exists('exec') || !is_dir(__DIR__ . '/../.git')) {
+        return $staticVersion;
     }
-    
-    // 生产环境：使用静态版本号
+
+    // 1. 优先获取当前分支名与 short commit id (如: v0.1.3-dda2c19 或 main-dda2c19)
+    $branchOutput = [];
+    $commitOutput = [];
+    exec('git rev-parse --abbrev-ref HEAD 2>&1', $branchOutput, $branchCode);
+    exec('git rev-parse --short HEAD 2>&1', $commitOutput, $commitCode);
+
+    if ($branchCode === 0 && $commitCode === 0 && !empty($commitOutput) && strpos($commitOutput[0], 'fatal') === false) {
+        $branch = trim($branchOutput[0] ?? 'main');
+        $commit = trim($commitOutput[0]);
+        return "{$branch}-{$commit}";
+    }
+
+    // 2. 退守方案：尝试获取 Git Tag 或提交 Hash (如: v0.1.0-5-ga3b2c1d 或 a3b2c1d)
+    // 移除了 Windows 专用的 2>nul，使用跨平台的 2>&1
+    $output = [];
+    $returnCode = 0;
+    exec('git describe --tags --always 2>&1', $output, $returnCode);
+    if ($returnCode === 0 && !empty($output) && strpos($output[0], 'fatal') === false) {
+        return trim($output[0]);
+    }
+
     return $staticVersion;
 }
 
@@ -30,15 +41,33 @@ function getVersion() {
 define('BILLFISH_WEB_VERSION', getVersion());
 define('BILLFISH_WEB_BUILD_DATE', date('Y-m-d'));
 
-// Billfish 资源库路径
-define('BILLFISH_PATH', 'D:/VS CODE/rzxme-billfish/demo-billfish');
+// =========================================================================
+// 路径与退守 (Fallback) 智能配置（自动兼容 Windows / Linux）
+// =========================================================================
 
-// 数据库路径
-define('BILLFISH_DB', BILLFISH_PATH . '\.bf\billfish.db');
-define('SUMMARY_DB', BILLFISH_PATH . '\.bf\summary_v2.db');
+// 1. 动态获取项目根目录，并统一将反斜杠转换为正斜杠 '/'
+$rootDir = str_replace('\\', '/', dirname(__DIR__));
 
-// 预览图片路径
-define('PREVIEW_PATH', BILLFISH_PATH . '\.bf\.preview');
+// 2. 候选路径配置
+// 路径 A：生产环境/特定挂载的外部大容量库路径（若不存在将自动降级退守）
+$primaryPath = 'D:/VS CODE/rzxme-billfish/demo-billfish';
+
+// 路径 B：保底/退守路径（项目内置的 demo 库，自动基于相对路径定位）
+$fallbackPath = $rootDir . '/demo-billfish';
+
+// 3. 智能路由与退守判定：优先检测主路径，不存在则自动回退至本地 demo 库
+if (!empty($primaryPath) && is_dir($primaryPath) && file_exists(rtrim($primaryPath, '/\\') . '/.bf/billfish.db')) {
+    define('BILLFISH_PATH', rtrim(str_replace('\\', '/', $primaryPath), '/'));
+} else {
+    define('BILLFISH_PATH', $fallbackPath);
+}
+
+// 4. 数据库与资源文件路径统一定义（全部使用正斜杠以保障 Linux/Win 双平台兼容）
+define('BILLFISH_DB', BILLFISH_PATH . '/.bf/billfish.db');
+define('SUMMARY_DB', BILLFISH_PATH . '/.bf/summary_v2.db');
+define('PREVIEW_PATH', BILLFISH_PATH . '/.bf/.preview');
+
+// =========================================================================
 
 // Web 访问路径配置
 define('WEB_PREVIEW_URL', 'preview.php?file=');

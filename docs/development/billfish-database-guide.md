@@ -8,12 +8,13 @@ Billfish 使用 SQLite3 数据库存储素材信息、文件夹结构、标签�
 
 ### 数据库文件位置
 
-```
+```text
 {资源库路径}/.BillfishDatabase/{library_id}.bf3
 ```
 
 示例：
-```
+
+```text
 D:/demo-billfish/.BillfishDatabase/1a2b3c4d.bf3
 ```
 
@@ -49,6 +50,7 @@ CREATE TABLE bf_material_v2 (
 #### 常用查询
 
 **获取所有未删除的素材**：
+
 ```sql
 SELECT * FROM bf_material_v2
 WHERE isDeleted = 0
@@ -56,12 +58,14 @@ ORDER BY createTime DESC;
 ```
 
 **按文件夹查询**：
+
 ```sql
 SELECT * FROM bf_material_v2
 WHERE folderId = 123 AND isDeleted = 0;
 ```
 
 **搜索文件名**：
+
 ```sql
 SELECT * FROM bf_material_v2
 WHERE name LIKE '%关键词%' AND isDeleted = 0
@@ -69,6 +73,7 @@ LIMIT 20;
 ```
 
 **按评分筛选**：
+
 ```sql
 SELECT * FROM bf_material_v2
 WHERE score >= 3 AND isDeleted = 0;
@@ -78,7 +83,7 @@ WHERE score >= 3 AND isDeleted = 0;
 
 存储文件夹结构。
 
-#### 表结构
+#### 表结构（bf_folder）
 
 ```sql
 CREATE TABLE bf_folder (
@@ -93,21 +98,24 @@ CREATE TABLE bf_folder (
 );
 ```
 
-#### 常用查询
+#### 常用查询（bf_folder）
 
 **获取根文件夹**：
+
 ```sql
 SELECT * FROM bf_folder
 WHERE parentId = 0 AND isDeleted = 0;
 ```
 
 **获取子文件夹**：
+
 ```sql
 SELECT * FROM bf_folder
 WHERE parentId = 123 AND isDeleted = 0;
 ```
 
 **获取文件夹路径**：
+
 ```sql
 WITH RECURSIVE folder_path AS (
     SELECT id, name, parentId, name as path
@@ -124,7 +132,7 @@ SELECT path FROM folder_path WHERE parentId = 0;
 
 存储标签信息。
 
-#### 表结构
+#### 表结构（bf_tag）
 
 ```sql
 CREATE TABLE bf_tag (
@@ -140,7 +148,7 @@ CREATE TABLE bf_tag (
 
 关联素材和标签的多对多关系。
 
-#### 表结构
+#### 表结构（bf_material_tag）
 
 ```sql
 CREATE TABLE bf_material_tag (
@@ -151,9 +159,10 @@ CREATE TABLE bf_material_tag (
 );
 ```
 
-#### 常用查询
+#### 常用查询（bf_material_tag）
 
 **获取素材的所有标签**：
+
 ```sql
 SELECT t.*
 FROM bf_tag t
@@ -162,6 +171,7 @@ WHERE mt.materialId = 123;
 ```
 
 **获取带有特定标签的素材**：
+
 ```sql
 SELECT m.*
 FROM bf_material_v2 m
@@ -191,13 +201,15 @@ CREATE TABLE bf_collection (
 这是最关键的字段之一，用于定位预览图文件。
 
 **预览图路径计算**：
-```
+
+```text
 hex_folder = hex(previewTid)的后两位
 preview_path = .preview/{hex_folder}/{previewTid}.small.webp
 ```
 
 **示例**：
-```
+
+```text
 previewTid = 10
 hex(10) = "0xa"
 hex_folder = "0a"
@@ -217,7 +229,7 @@ $dateTime = date('Y-m-d H:i:s', $createTime / 1000);
 ### 文件类型（type）
 
 | 值 | 类型 |
-|----|------|
+| --- | --- |
 | 1 | 图片 |
 | 2 | 视频 |
 | 3 | 音频 |

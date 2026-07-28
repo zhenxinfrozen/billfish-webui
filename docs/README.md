@@ -1,3 +1,5 @@
+<!-- markdownlint-disable MD022 MD031 MD032 MD034 MD040 -->
+
 # Billfish Web Manager
 
 基于Billfish素材管理软件，弄的一个 Web 管理系统，提供浏览、搜索、预览和管理 Billfish 资源库的完整解决方案。
@@ -11,7 +13,7 @@
 ## 文档地图
 
 | 分类 | 入口文档 | 说明 |
-|---|---|---|
+| --- | --- | --- |
 | 项目文档 | [README](README.md) | 项目总览与功能说明 |
 | 入门指南 | [getting-started/README](getting-started/README.md) | 快速上手与基础配置 |
 | 用户指南 | [guides/README](guides/README.md) | 日常使用向操作说明 |
@@ -23,55 +25,17 @@
 
 ## 项目截图
 
-<table width="100%">
-  <tr>
-    <td width="50%" align="center">
-      <b>首页</b><br>
-      <img src="demo-billfish/pics/UI-short/Screenshot-2026-03-04-01.png" width="100%">
-    </td>
-    <td width="50%" align="center">
-      <b>文件浏览</b><br>
-      <img src="demo-billfish/pics/UI-short/Screenshot-2026-03-04-02.png" width="100%">
-    </td>
-  </tr>
-  <tr>
-    <td align="center">
-      <b>图片媒体</b><br>
-      <img src="demo-billfish/pics/UI-short/Screenshot-2026-03-04-03.png" width="100%">
-    </td>
-    <td align="center">
-      <b>图片媒体 (详情)</b><br>
-      <img src="demo-billfish/pics/UI-short/Screenshot-2026-03-04-04.png" width="100%">
-    </td>
-  </tr>
-  <tr>
-    <td align="center">
-      <b>视频媒体</b><br>
-      <img src="demo-billfish/pics/UI-short/Screenshot-2026-03-04-05.png" width="100%">
-    </td>
-    <td align="center">
-      <b>工具中心</b><br>
-      <img src="demo-billfish/pics/UI-short/Screenshot-2026-03-04-06.png" width="100%">
-    </td>
-  </tr>
-  <tr>
-    <td align="center">
-      <b>资源库选择</b><br>
-      <img src="demo-billfish/pics/UI-short/Screenshot-2026-03-04-07.png" width="100%">
-    </td>
-    <td align="center">
-      <b>资源库添加</b><br>
-      <img src="demo-billfish/pics/UI-short/Screenshot-2026-03-04-08.png" width="100%">
-    </td>
-  </tr>
-  <tr>
-    <td align="center">
-      <b>文档中心</b><br>
-      <img src="demo-billfish/pics/UI-short/Screenshot-2026-03-04-09.png" width="100%">
-    </td>
-    <td></td>
-  </tr>
-</table>
+| 页面 | 截图 |
+| --- | --- |
+| 首页 | ![首页截图](demo-billfish/pics/UI-short/Screenshot-2026-03-04-01.png) |
+| 文件浏览 | ![文件浏览截图](demo-billfish/pics/UI-short/Screenshot-2026-03-04-02.png) |
+| 图片媒体 | ![图片媒体截图](demo-billfish/pics/UI-short/Screenshot-2026-03-04-03.png) |
+| 图片媒体（详情） | ![图片媒体详情截图](demo-billfish/pics/UI-short/Screenshot-2026-03-04-04.png) |
+| 视频媒体 | ![视频媒体截图](demo-billfish/pics/UI-short/Screenshot-2026-03-04-05.png) |
+| 工具中心 | ![工具中心截图](demo-billfish/pics/UI-short/Screenshot-2026-03-04-06.png) |
+| 资源库选择 | ![资源库选择截图](demo-billfish/pics/UI-short/Screenshot-2026-03-04-07.png) |
+| 资源库添加 | ![资源库添加截图](demo-billfish/pics/UI-short/Screenshot-2026-03-04-08.png) |
+| 文档中心 | ![文档中心截图](demo-billfish/pics/UI-short/Screenshot-2026-03-04-09.png) |
 
 ## 🎯 核心特性
 

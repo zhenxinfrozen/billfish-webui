@@ -30,9 +30,9 @@ include 'includes/header.php';
                     <p>统一浏览、预览和维护你的素材资源，保持流程轻量且稳定。</p>
                 </div>
                 <div class="home-hero-actions">
-                    <a href="browse.php" class="btn btn-primary btn-sm"><i class="fas fa-th-large"></i> 浏览文件</a>
-                    <a href="search.php" class="btn btn-outline-secondary btn-sm"><i class="fas fa-search"></i> 搜索</a>
-                    <a href="docs-ui.php" class="btn btn-outline-secondary btn-sm"><i class="fas fa-book"></i> 文档</a>
+                    <span class="hero-chip"><i class="fas fa-check-circle"></i> 核心模块在线</span>
+                    <span class="hero-chip"><i class="fas fa-database"></i> 数据源已连接</span>
+                    <span class="hero-chip"><i class="fas fa-clock"></i> 最近同步可用</span>
                 </div>
             </section>
 
@@ -87,10 +87,10 @@ include 'includes/header.php';
                     <h2><i class="fas fa-bolt"></i> 快速操作</h2>
                 </header>
                 <div class="quick-grid">
-                    <a href="browse.php" class="quick-item"><i class="fas fa-th-large"></i><span>浏览所有文件</span></a>
-                    <a href="search.php" class="quick-item"><i class="fas fa-search"></i><span>搜索文件</span></a>
-                    <a href="database-health.php" class="quick-item"><i class="fas fa-heartbeat"></i><span>数据库健康检查</span></a>
-                    <a href="docs-ui.php" class="quick-item"><i class="fas fa-book"></i><span>查看文档</span></a>
+                    <a href="tools-ui.php" class="quick-item"><i class="fas fa-toolbox"></i><span>打开工具中心</span></a>
+                    <a href="tools/web-ui/system-health-check.php" class="quick-item"><i class="fas fa-signal"></i><span>查看系统状态</span></a>
+                    <a href="tools/web-ui/database-health.php" class="quick-item"><i class="fas fa-heartbeat"></i><span>数据库健康检查</span></a>
+                    <a href="tools/web-ui/preview-checker.php" class="quick-item"><i class="fas fa-images"></i><span>预览图检查</span></a>
                 </div>
             </section>
         </div>
@@ -155,6 +155,23 @@ body {
     display: flex;
     gap: 8px;
     flex-wrap: wrap;
+}
+
+.hero-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border: 1px solid #dbeafe;
+    border-radius: 999px;
+    background: #eff6ff;
+    color: #1e3a8a;
+    font-size: 0.8rem;
+    white-space: nowrap;
+}
+
+.hero-chip i {
+    color: #2563eb;
 }
 
 .home-stats {
