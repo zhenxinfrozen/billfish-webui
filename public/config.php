@@ -45,27 +45,36 @@ define('BILLFISH_WEB_BUILD_DATE', date('Y-m-d'));
 // 路径与退守 (Fallback) 智能配置（自动兼容 Windows / Linux）
 // =========================================================================
 
-// 1. 动态获取项目根目录，并统一将反斜杠转换为正斜杠 '/'
+// 1. 动态获取项目根目录（统一为正斜杠）
 $rootDir = str_replace('\\', '/', dirname(__DIR__));
 
 // 2. 候选路径配置
-// 路径 A：生产环境/特定挂载的外部大容量库路径（若不存在将自动降级退守）
-$primaryPath = 'D:/VS CODE/rzxme-billfish/demo-billfish';
+// $primaryPath 可以是绝对路径（如 D:/素材）或相对路径（如 ./demo-billfish）
+$primaryPath = './demo-billfish';
 
-// 路径 B：保底/退守路径（项目内置的 demo 库，自动基于相对路径定位）
-$fallbackPath = $rootDir . '/demo-billfish';
-
-// 3. 智能路由与退守判定：优先检测主路径，不存在则自动回退至本地 demo 库
-if (!empty($primaryPath) && is_dir($primaryPath) && file_exists(rtrim($primaryPath, '/\\') . '/.bf/billfish.db')) {
-    define('BILLFISH_PATH', rtrim(str_replace('\\', '/', $primaryPath), '/'));
-} else {
-    define('BILLFISH_PATH', $fallbackPath);
+// 解析 primaryPath 真正的物理绝对路径
+$parsedPrimary = $primaryPath;
+if (strpos($primaryPath, './') === 0 || strpos($primaryPath, '../') === 0) {
+    $cleanPath = preg_replace('/^(\.\.\/|\.\/|\/)+/', '', $primaryPath);
+    $parsedPrimary = $rootDir . '/' . $cleanPath;
 }
 
-// 4. 数据库与资源文件路径统一定义（全部使用正斜杠以保障 Linux/Win 双平台兼容）
+// 路径 B：保底/退守路径
+$fallbackPath = $rootDir . '/demo-billfish';
+
+// 3. 智能路由与退守判定：绝对路径检测
+if (!empty($parsedPrimary) && is_dir($parsedPrimary) && file_exists(rtrim($parsedPrimary, '/\\') . '/.bf/billfish.db')) {
+    define('BILLFISH_PATH', str_replace('\\', '/', realpath($parsedPrimary)));
+} else {
+    define('BILLFISH_PATH', str_replace('\\', '/', realpath($fallbackPath)));
+}
+
+// 4. 数据库与资源文件路径统一定义
 define('BILLFISH_DB', BILLFISH_PATH . '/.bf/billfish.db');
 define('SUMMARY_DB', BILLFISH_PATH . '/.bf/summary_v2.db');
 define('PREVIEW_PATH', BILLFISH_PATH . '/.bf/.preview');
+
+// =========================================================================
 
 // =========================================================================
 
