@@ -76,3 +76,11 @@ __pycache__/
 *.zip
 *.rar
 *.7z
+
+# 本地部署链接（junction / 软链，VPS 部署时手动创建，不入库）
+/public/shared-admin
+/public/shared-layout
+
+# 后台本地私有配置与备份（不随仓库外发）
+public/admin/config.local.php
+public/admin/backups/

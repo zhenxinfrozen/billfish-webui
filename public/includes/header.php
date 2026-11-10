@@ -1,52 +1,58 @@
+<?php
+/**
+ * 前台公共头部 - 基于 SharedLayout\SiteHeader 通用布局组件
+ *
+ * 页面契约（沿用旧版，业务页面无需改动）：
+ *   $pageTitle   string  页面标题
+ *   $currentPage string  当前页标识（预留，激活态由组件按 URL 自动判定）
+ *   $extraCss    string  额外 CSS（<link> 片段），在 </head> 前输出
+ *
+ * 套件源码位于仓库根 shared-layout/，通过 public/shared-layout junction 暴露静态资源。
+ */
+
+require_once __DIR__ . '/../../shared-layout/src/SiteHeader.php';
+
+use SharedLayout\SiteHeader;
+
+// 前台导航（标签 => 路由）
+$frontNav = [
+    '首页'   => '/index.php',
+    '浏览'   => '/browse.php',
+    '文档'   => '/docs-ui.php',
+    '文档管理' => '/docs-admin.php',
+    '工具'   => '/tools-ui.php',
+];
+
+// 版本徽章（config.php 已通过 git 探测分支/commit，失败时退化为静态版本号）
+$headerBadges = [];
+if (defined('BILLFISH_WEB_VERSION')) {
+    $headerBadges[] = BILLFISH_WEB_VERSION;
+}
+
+$headerTitle = isset($pageTitle) ? $pageTitle . ' - Billfish Web Manager' : 'Billfish Web Manager';
+?>
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo isset($pageTitle) ? $pageTitle . ' - Billfish Web Manager' : 'Billfish Web Manager'; ?></title>
+    <title><?= htmlspecialchars($headerTitle) ?></title>
+    <link rel="icon" type="image/webp" href="/assets/images/logo.webp">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="/assets/css/style.css" rel="stylesheet">
     <?php if (isset($extraCss)) echo $extraCss; ?>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top" style="z-index: 1030;">
-        <div class="container">
-            <a class="navbar-brand" href="/index.php">
-                <i class="fas fa-fish"></i> Billfish Web Manager
-                <span class="badge bg-secondary"><?php echo defined('BILLFISH_WEB_VERSION') ? BILLFISH_WEB_VERSION : '0.1.1'; ?></span>
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link <?php echo ($currentPage == 'index.php') ? 'active' : ''; ?>" href="/index.php">
-                            <i class="fas fa-home"></i> 首页
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link <?php echo ($currentPage == 'browse.php') ? 'active' : ''; ?>" href="/browse.php">
-                            <i class="fas fa-th"></i> 浏览
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link <?php echo ($currentPage == 'docs-ui.php') ? 'active' : ''; ?>" href="/docs-ui.php">
-                            <i class="fas fa-book"></i> 文档
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link <?php echo ($currentPage == 'docs-admin.php') ? 'active' : ''; ?>" href="/docs-admin.php">
-                            <i class="fas fa-cogs"></i> 文档管理
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link <?php echo ($currentPage == 'tools-ui.php') ? 'active' : ''; ?>" href="/tools-ui.php">
-                            <i class="fas fa-tools"></i> 工具
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
+<?php
+echo SiteHeader::render([
+    'brand'      => 'Billfish Web Manager',
+    'tagline'    => '素材资源库',
+    'badges'     => $headerBadges,
+    'logo'       => '/assets/images/logo.webp',
+    'logo_file'  => __DIR__ . '/../assets/images/logo.webp',
+    'home_url'   => '/index.php',
+    'nav'        => $frontNav,
+    'assets_url' => '/shared-layout/assets',
+]);
+?>
