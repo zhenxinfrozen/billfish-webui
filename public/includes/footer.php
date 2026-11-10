@@ -9,6 +9,15 @@ require_once __DIR__ . '/../../shared-layout/src/SiteFooter.php';
 
 use SharedLayout\SiteFooter;
 
+// 站点品牌/图标配置（与头部同源，缺字段时兜底）
+$siteSettingsFile = __DIR__ . '/site_settings.php';
+$ss = is_file($siteSettingsFile) ? (require $siteSettingsFile) : [];
+$brandText  = $ss['site_name'] ?? 'Billfish Web Manager';
+$logoUrl    = $ss['site_icon'] ?? '/assets/images/logo.webp';
+$logoRel    = parse_url($logoUrl, PHP_URL_PATH);
+$logoPath   = $logoRel ? __DIR__ . '/..' . $logoRel : null;
+$siteDesc   = $ss['site_description'] ?? '浏览、预览与维护 Billfish 素材资源';
+
 $footerNav = [
     '首页'   => '/index.php',
     '浏览'   => '/browse.php',
@@ -25,10 +34,10 @@ $footerBuild   = defined('BILLFISH_WEB_BUILD_DATE') ? BILLFISH_WEB_BUILD_DATE : 
     <?php if (isset($extraJs)) echo $extraJs; ?>
 <?php
 echo SiteFooter::render([
-    'brand'       => 'Billfish Web Manager',
-    'logo'        => '/assets/images/logo.webp',
-    'logo_file'   => __DIR__ . '/../assets/images/logo.webp',
-    'description' => ['浏览、预览与维护 Billfish 素材资源', "版本 {$footerVersion} · 构建 {$footerBuild}"],
+    'brand'       => $brandText,
+    'logo'        => $logoUrl,
+    'logo_file'   => $logoPath,
+    'description' => [$siteDesc, "版本 {$footerVersion} · 构建 {$footerBuild}"],
     'nav'         => $footerNav,
     'copyright'   => '© ' . date('Y') . ' rzx.me',
     'powered_by'  => 'Powered by Billfish Web Manager',

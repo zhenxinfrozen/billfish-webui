@@ -14,6 +14,15 @@ require_once __DIR__ . '/../../shared-layout/src/SiteHeader.php';
 
 use SharedLayout\SiteHeader;
 
+// 站点品牌/图标配置（后台「网站设置」落盘，缺字段时用当前项目默认值兜底）
+$siteSettingsFile = __DIR__ . '/site_settings.php';
+$ss = is_file($siteSettingsFile) ? (require $siteSettingsFile) : [];
+$brandText  = $ss['site_name'] ?? 'Billfish Web Manager';
+$taglineText = $ss['tagline'] ?? '素材资源库';
+$logoUrl    = $ss['site_icon'] ?? '/assets/images/logo.webp';
+$logoRel    = parse_url($logoUrl, PHP_URL_PATH);
+$logoPath   = $logoRel ? __DIR__ . '/..' . $logoRel : null;
+
 // 前台导航（标签 => 路由）
 $frontNav = [
     '首页'   => '/index.php',
@@ -29,7 +38,7 @@ if (defined('BILLFISH_WEB_VERSION')) {
     $headerBadges[] = BILLFISH_WEB_VERSION;
 }
 
-$headerTitle = isset($pageTitle) ? $pageTitle . ' - Billfish Web Manager' : 'Billfish Web Manager';
+$headerTitle = isset($pageTitle) ? $pageTitle . ' - ' . $brandText : $brandText;
 ?>
 <!DOCTYPE html>
 <html lang="zh-CN">
@@ -46,11 +55,11 @@ $headerTitle = isset($pageTitle) ? $pageTitle . ' - Billfish Web Manager' : 'Bil
 <body>
 <?php
 echo SiteHeader::render([
-    'brand'      => 'Billfish Web Manager',
-    'tagline'    => '素材资源库',
+    'brand'      => $brandText,
+    'tagline'    => $taglineText,
     'badges'     => $headerBadges,
-    'logo'       => '/assets/images/logo.webp',
-    'logo_file'  => __DIR__ . '/../assets/images/logo.webp',
+    'logo'       => $logoUrl,
+    'logo_file'  => $logoPath,
     'home_url'   => '/index.php',
     'nav'        => $frontNav,
     'assets_url' => '/shared-layout/assets',

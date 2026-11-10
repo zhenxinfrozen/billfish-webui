@@ -112,12 +112,23 @@ public/admin/
 ├── library-manager.php        # 后台资料库管理器（受保护副本）
 ├── index.php                  # 控制台仪表盘
 ├── libraries.php              # 资料库配置（受控副本）
-├── docs.php                   # 文档管理（只读副本）
+├── docs.php                   # 文档知识库（复用 shared-admin 内置 docs Wiki）
+├── settings.php               # 网站设置（复用 shared-admin site-settings 模板）
+├── template-new.php           # 标准模板与组件展厅（复用 shared-admin 内置页）
 ├── tools.php                  # 工具中心（只读副本）
-├── system.php                 # 系统信息（复用 shared-admin 内置页）
+├── system.php                 # 系统信息（复用 shared-admin 内置 system-info）
 └── api/
     └── libraries.php          # 后台配置 API（登录态 + CSRF）
 ```
+
+### 3.1.1 内置通用页面接入对照
+
+| 后台页 | 套件能力 | 接入方式 |
+|---|---|---|
+| `docs.php` | 内置 Markdown Wiki：侧栏目录、阅读、全文搜索、代码高亮 | `AdminCore::handleBuiltinPage('docs', ['docsDir' => DOCS_DIR])` |
+| `system.php` | 内置系统信息看板 | `handleBuiltinPage('system-info')` |
+| `template-new.php` | 内置标准模板 / 组件展厅 | `handleBuiltinPage('template-new')` |
+| `settings.php` | 内置网站设置表单模板（图标/名称/配色/版本/Git 分支） | 项目准备配置数组 + 保存回调后手动 require 模板（见 3.5） |
 
 ### 3.2 引导层 `bootstrap.php`
 
@@ -150,7 +161,19 @@ public/admin/
 php -r "echo password_hash('你的密码', PASSWORD_DEFAULT);"
 ```
 
-### 3.5 后台页面与前台对照
+### 3.5 网站设置（site-settings）
+
+- 配置文件：`public/includes/site_settings.php`，返回关联数组，字段与套件模板对齐——
+  `site_name` / `tagline` / `site_description` / `site_icon` / `primary_color` / `header_bg` /
+  `brand_color` / `nav_text_color` / `show_version` / `version_text` / `use_git_branch` / `git_branch_cache`。
+- `settings.php` 引导后：读入配置并用默认值补齐缺失字段；POST 先 `admin_csrf_check()`；
+  保存回调把合并后的数组原子写回配置文件（`admin_save_with_backup()`，写前备份）；
+  图标上传目录 `public/assets/images`，URL 前缀 `/assets/images/`；检测当前 Git 分支（main/master 不显示）；
+  把 `$csrf_token` 传给套件模板输出隐藏字段。
+- 前台 `includes/header.php` / `footer.php` 读取该配置驱动品牌名、副标题、图标与描述，缺字段时兜底当前项目默认值。
+- **注意**：项目配置必须补全模板引用的所有字段，不能依赖模板 `?? 默认值` 兜底；否则首次保存会把套件示例值写回项目配置。
+
+### 3.6 后台页面与前台对照
 
 按项目要求，**前台原有页面与公开入口全部保留，后台为受控副本，形成双份**：
 
@@ -158,12 +181,14 @@ php -r "echo password_hash('你的密码', PASSWORD_DEFAULT);"
 |---|---|---|---|
 | 控制台 | `/admin/index.php` | — | 登录后 |
 | 资料库配置 | `/admin/libraries.php` | `/tools/library-config.php` | 登录 + CSRF |
-| 文档管理 | `/admin/docs.php` | `/docs-admin.php` | 登录后（只读） |
+| 文档知识库 | `/admin/docs.php` | `/docs-admin.php` | 登录后（只读 Wiki） |
+| 网站设置 | `/admin/settings.php` | — | 登录 + CSRF |
+| 标准模板展厅 | `/admin/template-new.php` | — | 登录后 |
 | 工具中心 | `/admin/tools.php` | `/tools-ui.php` | 登录后（只读） |
 | 系统信息 | `/admin/system.php` | shared-admin 内置 `system-info` | 登录后 |
 | 后台配置 API | `/admin/api/libraries.php` | `/api/library-config.php` | 登录 + CSRF |
 
-### 3.6 受控 API 与写操作逻辑
+### 3.7 受控 API 与写操作逻辑
 
 `api/libraries.php` 路由：`list`（GET）、`add` / `switch` / `delete` / `scan_nas`（POST）。
 
@@ -221,6 +246,8 @@ public/admin/backups/           # 写操作备份
 本地 `php -S localhost:8099 -t public` 冒烟结果：
 
 - 未登录访问 `/admin/*` → 302 跳转 `login.php`；登录页 200。
-- 登录后：`index.php` / `libraries.php` / `docs.php` / `tools.php` / `system.php` 均 200，无 PHP Warning / Fatal。
+- 登录后：`index.php` / `libraries.php` / `docs.php`（内置 Wiki）/ `settings.php` / `template-new.php` / `tools.php` / `system.php` 均 200，无 PHP Warning / Fatal。
+- 文档 Wiki：侧栏列出根目录 / api / development 等分组；`?file=` 可正常渲染 Markdown 文档。
+- 网站设置：表单预填当前品牌/图标/配色；带 CSRF 提交后配置原子写回 `site_settings.php`，字段完整无示例值污染；缺 CSRF 的 POST 返回 419。
 - 后台 API：已登录 `list` 返回 JSON；未登录 302；缺 CSRF 的写请求返回 419。
-- 前台五页（首页、浏览、文档中心、文档管理、工具中心）头尾组件正常渲染，无报错。
+- 前台五页（首页、浏览、文档中心、文档管理、工具中心）头尾组件读取站点配置正常渲染，无报错。

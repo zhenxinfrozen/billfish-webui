@@ -19,6 +19,8 @@ $adminMenu = [
     ['key' => 'tools',     'title' => '工具中心', 'icon' => 'tool', 'url' => 'tools.php'],
 
     ['type' => 'section', 'title' => '系统'],
+    ['key' => 'settings',  'title' => '网站设置', 'icon' => 'settings', 'url' => 'settings.php'],
+    ['key' => 'template-new', 'title' => '标准模板', 'icon' => 'layout', 'url' => 'template-new.php'],
     ['key' => 'system',    'title' => '系统信息', 'icon' => 'info', 'url' => 'system.php'],
 ];
 
