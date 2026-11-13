@@ -8,6 +8,7 @@
 - [Billfish 数据库完整指南](billfish-database-guide.md)
 - [安装 SQLite3 扩展](SQLite 扩展使用说明.md)
 - [Git 使用指南](git-guide.md)
+- [Layout 与 Admin 后台接入说明](admin-layout-integration.md)
 - [Git Repository Cleanup Report](git-cleanup-report.md)
 
 ## 建议阅读顺序

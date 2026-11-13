@@ -274,6 +274,63 @@ sudo systemctl restart php-fpm
 - 切换当前活动库
 - 删除无效库配置
 
+## 🔐 后台接入（shared-admin / shared-layout）
+
+项目已接入两套通用套件，均以 **git submodule** 形式挂在仓库根目录：
+
+| 子模块 | 仓库 | 作用 |
+|---|---|---|
+| `shared-admin/` | github.com/zhenxinfrozen/shared-admin | 后台深色侧边栏骨架、内置系统信息页、通用资产 |
+| `shared-layout/` | github.com/zhenxinfrozen/shared-layout | 前台通用 SiteHeader / SiteFooter 组件 |
+
+### 目录与链接
+
+- docroot 为 `public/`，套件源码在仓库根目录，需在 `public/` 下建立指向套件的链接，静态资源才能被访问：
+  - Windows（本地开发，junction，已建好）：`public/shared-admin` → `../shared-admin`，`public/shared-layout` → `../shared-layout`
+  - Linux / VPS（软链，部署时手动创建）：
+    ```bash
+    ln -s ../shared-admin public/shared-admin
+    ln -s ../shared-layout public/shared-layout
+    ```
+  - 这两个链接已写入 `.gitignore`，不随仓库提交。
+
+### 首次配置后台密码
+
+1. 复制 `public/admin/config.example.php` 为 `public/admin/config.local.php`（已被 gitignore，不入库）。
+2. 生成密码哈希：
+   ```bash
+   php -r "echo password_hash('你的密码', PASSWORD_DEFAULT);"
+   ```
+3. 填入 `admin_user` 与 `password_hash`；未配置哈希时后台会给出告警且无法登录。
+
+### 后台页面与前台对照
+
+后台为受登录态与 CSRF 保护的受控副本；按项目要求，**前台原有页面与公开入口全部保留，形成双份**。
+
+| 后台页面 | 路由 | 对应前台副本 |
+|---|---|---|
+| 控制台 | `/admin/index.php` | —（库统计 / 工具数 / 文档数概览） |
+| 资料库配置 | `/admin/libraries.php` | `/tools/library-config.php` |
+| 文档管理（只读） | `/admin/docs.php` | `/docs-admin.php` |
+| 工具中心（只读） | `/admin/tools.php` | `/tools-ui.php` |
+| 系统信息 | `/admin/system.php` | shared-admin 内置页 |
+| 后台配置 API | `/admin/api/libraries.php` | `/api/library-config.php` |
+
+- 后台写操作（增 / 删 / 切换库 / NAS 扫描）均校验登录态 + CSRF token；改写 `libraries.json`、`config.php` 前自动在 `public/admin/backups/` 保留时间戳备份。
+- 登录态：单用户 `password_hash` + 会话 + 失败限流（默认 8 次锁定 15 分钟），会话名 `BFADMIN_SID`。
+
+### 安全现状与遗留风险（部署前请处理）
+
+- **前台公开副本仍可写**：`/api/library-config.php`、`/tools/library-config.php` 等按要求保留在前台且未加鉴权。生产环境若不希望公开写入口，应在 Web 层（反代 / Basic Auth / 目录访问控制）对这些路径加保护，或后续下线前台副本。
+- **遗留调试 / 测试文件**仍位于 docroot 下，建议移出 `public/` 或在生产屏蔽：
+  `analyze-thumbnail.php`、`debug-file.php`、`direct-check.php`、`get-file-id.php`、`preview-debug.php`、`simple-serve.php`、`status.php`、`test-custom-thumbnail.php`、`test-nas-connection.php`、`test-preview-logic.php`、`test-robustness.php`、`video-list.php`。
+- 工具执行类能力（Python / 命令行）目前不在后台开放，后台工具页仅做清单与 Web 入口展示。
+
+### 待反哺 shared-admin 的通用点（后续 upstream）
+
+- 后台鉴权引导范式（会话 / 登录校验 / CSRF / 失败限流 / flash / JSON 原子写 + 备份 GC）目前在各接入项目间复制，可沉淀为 shared-admin 的可复用 `AdminAuth` 服务与独立登录视图。
+- 独立登录页模板、后台菜单分组配置可作为 shared-admin 标准页面对外提供。
+
 ## 🐛 故障排除
 
 ### 常见问题
