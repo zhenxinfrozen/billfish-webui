@@ -88,8 +88,6 @@ public/admin/backups/
 # Obsidian 编辑器本地状态（窗口/布局/插件配置，不入库）
 docs/.obsidian/
 
-# 演示资料库运行时数据（数据库 / 备份 / UI 配置；预览缩略图仍保留在仓库）
-demo-billfish/.bf/billfish.db
-demo-billfish/.bf/summary_v2.db
+# 演示资料库运行时备份目录（基础数据库、汇总库与 UI 配置随仓库入库，仅备份忽略）
 demo-billfish/.bf/.backup/
-demo-billfish/.bf/.ui_config/
+demo-billfish/.bf/.temp/
