@@ -84,3 +84,12 @@ __pycache__/
 # 后台本地私有配置与备份（不随仓库外发）
 public/admin/config.local.php
 public/admin/backups/
+
+# Obsidian 编辑器本地状态（窗口/布局/插件配置，不入库）
+docs/.obsidian/
+
+# 演示资料库运行时数据（数据库 / 备份 / UI 配置；预览缩略图仍保留在仓库）
+demo-billfish/.bf/billfish.db
+demo-billfish/.bf/summary_v2.db
+demo-billfish/.bf/.backup/
+demo-billfish/.bf/.ui_config/
