@@ -7,7 +7,7 @@ return [
     'site_description' => '浏览、预览与维护 Billfish 素材资源',
     'site_icon' => '/assets/images/logo.webp',
     'primary_color' => '#007bff',
-    'header_bg' => 'rgba(20,143,219,0.5)',
+    'header_bg' => 'rgba(255,255,255,0.5)',
     'brand_color' => '#007bff',
     'nav_text_color' => '#495057',
     'show_version' => true,
